@@ -73,11 +73,6 @@ export default function Animals() {
     animal.breed.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-chart-1";
-    if (score >= 60) return "text-chart-2";
-    return "text-muted-foreground";
-  };
 
   if (isLoading) {
     return (
@@ -159,10 +154,11 @@ export default function Animals() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Species</TableHead>
                 <TableHead>Sex</TableHead>
                 <TableHead>Age</TableHead>
                 <TableHead>Breed</TableHead>
-                <TableHead>Genetic Score</TableHead>
+                <TableHead>Weight</TableHead>
                 <TableHead>Horn Size</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -173,6 +169,7 @@ export default function Animals() {
                   <TableCell className="font-medium" data-testid={`text-name-${animal.id}`}>
                     {animal.name}
                   </TableCell>
+                  <TableCell>{animal.species}</TableCell>
                   <TableCell>
                     <Badge variant={animal.sex === "Male" ? "default" : "secondary"}>
                       {animal.sex}
@@ -180,14 +177,8 @@ export default function Animals() {
                   </TableCell>
                   <TableCell>{animal.age} yrs</TableCell>
                   <TableCell>{animal.breed}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`font-mono font-semibold ${getScoreColor(
-                        parseFloat(animal.geneticScore)
-                      )}`}
-                    >
-                      {animal.geneticScore}
-                    </span>
+                  <TableCell className="font-mono">
+                    {parseFloat(animal.weight).toFixed(0)} lbs
                   </TableCell>
                   <TableCell>
                     {animal.hornSize ? `${animal.hornSize}"` : "—"}
