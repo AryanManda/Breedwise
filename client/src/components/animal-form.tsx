@@ -1,0 +1,250 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { insertAnimalSchema, type InsertAnimal, type Animal } from "@shared/schema";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+
+interface AnimalFormProps {
+  animal?: Animal | null;
+  onSuccess?: () => void;
+}
+
+export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
+  const { toast } = useToast();
+  const isEditing = !!animal;
+
+  const form = useForm<InsertAnimal>({
+    resolver: zodResolver(insertAnimalSchema),
+    defaultValues: animal
+      ? {
+          name: animal.name,
+          age: animal.age,
+          sex: animal.sex as "Male" | "Female",
+          breed: animal.breed,
+          geneticScore: parseFloat(animal.geneticScore),
+          hornSize: animal.hornSize ? parseFloat(animal.hornSize) : undefined,
+        }
+      : {
+          name: "",
+          age: 0,
+          sex: "Male",
+          breed: "",
+          geneticScore: 50,
+          hornSize: undefined,
+        },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: InsertAnimal) => apiRequest("POST", "/api/animals", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/animals"] });
+      toast({
+        title: "Animal added",
+        description: "The animal has been successfully added to your breeding program.",
+      });
+      form.reset();
+      onSuccess?.();
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add animal. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: InsertAnimal) =>
+      apiRequest("PUT", `/api/animals/${animal!.id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/animals"] });
+      toast({
+        title: "Animal updated",
+        description: "The animal information has been successfully updated.",
+      });
+      onSuccess?.();
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update animal. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: InsertAnimal) => {
+    if (isEditing) {
+      updateMutation.mutate(data);
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="e.g., Thunder"
+                    {...field}
+                    data-testid="input-animal-name"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="breed"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Breed</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="e.g., Angus"
+                    {...field}
+                    data-testid="input-animal-breed"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="sex"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Sex</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger data-testid="select-animal-sex">
+                      <SelectValue placeholder="Select sex" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="age"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Age (years)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g., 5"
+                    {...field}
+                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    data-testid="input-animal-age"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="geneticScore"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Genetic Score</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="0-100"
+                    step="0.1"
+                    {...field}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    data-testid="input-animal-genetic-score"
+                  />
+                </FormControl>
+                <FormDescription>
+                  Overall genetic quality rating (0-100)
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="hornSize"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Horn Size (inches)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Optional"
+                    step="0.01"
+                    {...field}
+                    value={field.value || ""}
+                    onChange={(e) =>
+                      field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)
+                    }
+                    data-testid="input-animal-horn-size"
+                  />
+                </FormControl>
+                <FormDescription>Optional measurement</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="flex justify-end gap-3">
+          <Button
+            type="submit"
+            disabled={isPending}
+            data-testid="button-submit-animal"
+          >
+            {isPending ? "Saving..." : isEditing ? "Update Animal" : "Add Animal"}
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
