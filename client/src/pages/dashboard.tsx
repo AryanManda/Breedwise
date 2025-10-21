@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart3, TrendingUp, Users, Target } from "lucide-react";
+import { Users, TrendingUp, Activity, FileTree } from "lucide-react";
 import type { Animal } from "@shared/schema";
 import {
   BarChart,
@@ -40,19 +40,20 @@ export default function Dashboard() {
   const totalAnimals = animals?.length || 0;
   const maleCount = animals?.filter((a) => a.sex === "Male").length || 0;
   const femaleCount = animals?.filter((a) => a.sex === "Female").length || 0;
-  const avgGeneticScore =
+  
+  const avgWeight =
     animals?.length
       ? (
-          animals.reduce((sum, a) => sum + parseFloat(a.geneticScore), 0) /
+          animals.reduce((sum, a) => sum + parseFloat(a.weight), 0) /
           animals.length
         ).toFixed(1)
       : "0.0";
 
-  const topPerformer = animals?.length
-    ? animals.reduce((max, a) =>
-        parseFloat(a.geneticScore) > parseFloat(max.geneticScore) ? a : max
-      )
-    : null;
+  const animalsWithParents = animals?.filter((a) => a.sireId || a.damId).length || 0;
+
+  const uniqueBreeds = animals?.length
+    ? new Set(animals.map((a) => a.breed)).size
+    : 0;
 
   const ageDistribution = animals?.length
     ? Object.entries(
@@ -70,24 +71,16 @@ export default function Dashboard() {
     { name: "Female", value: femaleCount, color: "hsl(var(--chart-2))" },
   ];
 
-  const scoreDistribution = animals?.length
+  const breedDistribution = animals?.length
     ? Object.entries(
         animals.reduce((acc, a) => {
-          const score = parseFloat(a.geneticScore);
-          const range =
-            score < 60
-              ? "0-59"
-              : score < 70
-              ? "60-69"
-              : score < 80
-              ? "70-79"
-              : score < 90
-              ? "80-89"
-              : "90-100";
-          acc[range] = (acc[range] || 0) + 1;
+          acc[a.breed] = (acc[a.breed] || 0) + 1;
           return acc;
         }, {} as Record<string, number>)
-      ).map(([name, value]) => ({ name, value }))
+      )
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 6)
     : [];
 
   return (
@@ -115,39 +108,39 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card data-testid="card-avg-genetic-score">
+        <Card data-testid="card-avg-weight">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Avg Genetic Score
+              Avg Weight
             </CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div
               className="text-2xl font-bold font-mono"
-              data-testid="text-avg-score"
+              data-testid="text-avg-weight"
             >
-              {avgGeneticScore}
+              {avgWeight} lbs
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Out of 100</p>
+            <p className="text-xs text-muted-foreground mt-1">Average across herd</p>
           </CardContent>
         </Card>
 
-        <Card data-testid="card-top-performer">
+        <Card data-testid="card-lineage-tracked">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Top Performer
+              Lineage Tracked
             </CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
+            <FileTree className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold" data-testid="text-top-performer">
-              {topPerformer?.name || "N/A"}
+            <div className="text-2xl font-bold" data-testid="text-lineage-tracked">
+              {animalsWithParents}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {topPerformer
-                ? `Score: ${topPerformer.geneticScore}`
-                : "No animals yet"}
+              {animalsWithParents
+                ? `${((animalsWithParents / totalAnimals) * 100).toFixed(0)}% with parent records`
+                : "No lineage data yet"}
             </p>
           </CardContent>
         </Card>
@@ -164,7 +157,7 @@ export default function Dashboard() {
               {Math.min(maleCount, femaleCount)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Possible breeding pairs
+              {uniqueBreeds} unique breeds
             </p>
           </CardContent>
         </Card>
@@ -241,12 +234,12 @@ export default function Dashboard() {
 
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Genetic Score Distribution</CardTitle>
+            <CardTitle>Breed Distribution</CardTitle>
           </CardHeader>
           <CardContent>
-            {scoreDistribution.length > 0 ? (
+            {breedDistribution.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={scoreDistribution}>
+                <BarChart data={breedDistribution}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
                   <YAxis stroke="hsl(var(--muted-foreground))" />
