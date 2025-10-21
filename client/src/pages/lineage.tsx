@@ -30,12 +30,17 @@ export default function Lineage() {
     );
   }
 
-  const buildTree = (animals: Animal[]): TreeNode[] => {
+  const buildTree = (animals: Animal[]): { trees: TreeNode[], orphans: Animal[] } => {
     const animalMap = new Map<string, Animal>();
     animals?.forEach((animal) => animalMap.set(animal.id, animal));
 
     const roots: TreeNode[] = [];
-    const processed = new Set<string>();
+    const coveredIds = new Set<string>();
+
+    const collectCoveredIds = (node: TreeNode) => {
+      coveredIds.add(node.animal.id);
+      node.children.forEach(collectCoveredIds);
+    };
 
     const buildNodeTree = (animal: Animal, level: number, visited: Set<string> = new Set()): TreeNode => {
       if (visited.has(animal.id)) {
@@ -56,22 +61,25 @@ export default function Lineage() {
     };
 
     animals?.forEach((animal) => {
-      const sireExists = animal.sireId && animalMap.has(animal.sireId);
-      const damExists = animal.damId && animalMap.has(animal.damId);
+      const sireExists = !!(animal.sireId && animalMap.has(animal.sireId));
+      const damExists = !!(animal.damId && animalMap.has(animal.damId));
       
       const parentExists = sireExists || damExists;
       const isRoot = !parentExists;
       
-      if (isRoot && !processed.has(animal.id)) {
-        roots.push(buildNodeTree(animal, 0));
-        processed.add(animal.id);
+      if (isRoot && !coveredIds.has(animal.id)) {
+        const tree = buildNodeTree(animal, 0);
+        roots.push(tree);
+        collectCoveredIds(tree);
       }
     });
 
-    return roots;
+    const orphans = animals?.filter((a) => !coveredIds.has(a.id)) || [];
+
+    return { trees: roots, orphans };
   };
 
-  const trees = buildTree(animals || []);
+  const { trees, orphans } = buildTree(animals || []);
 
   const renderTree = (node: TreeNode, parentPath: string = "") => {
     const path = `${parentPath}-${node.animal.id}`;
@@ -175,14 +183,14 @@ export default function Lineage() {
             </AlertDescription>
           </Alert>
 
-          {trees.length === 0 && animalsWithLineage.length > 0 ? (
+          {trees.length === 0 && orphans.length === 0 && animalsWithLineage.length > 0 ? (
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
                 All animals in your program have parent records, but no root lineage (animals without parents) to start the tree visualization.
               </AlertDescription>
             </Alert>
-          ) : trees.length === 0 ? (
+          ) : trees.length === 0 && orphans.length === 0 ? (
             <Card className="p-12">
               <div className="text-center space-y-4">
                 <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
@@ -208,6 +216,65 @@ export default function Lineage() {
                   {renderTree(tree)}
                 </div>
               ))}
+              
+              {orphans.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-sm">
+                      Unanchored Animals
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      ({orphans.length} animal{orphans.length !== 1 ? "s" : ""} with circular or missing parent references)
+                    </span>
+                  </div>
+                  <div className="space-y-3">
+                    {orphans.map((animal) => (
+                      <Card key={animal.id} className="hover-elevate" data-testid={`card-orphan-${animal.id}`}>
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <CardTitle className="flex items-center gap-2 text-lg">
+                                <span>{animal.name}</span>
+                                <Badge variant={animal.sex === "Male" ? "default" : "secondary"}>
+                                  {animal.sex}
+                                </Badge>
+                              </CardTitle>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-2 pt-0">
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <span className="text-muted-foreground">Species:</span>
+                              <span className="ml-2 font-medium">{animal.species}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Breed:</span>
+                              <span className="ml-2 font-medium">{animal.breed}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Age:</span>
+                              <span className="ml-2 font-medium">{animal.age} yrs</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Weight:</span>
+                              <span className="ml-2 font-mono font-medium">
+                                {parseFloat(animal.weight).toFixed(0)} lbs
+                              </span>
+                            </div>
+                          </div>
+                          {animal.hornSize && (
+                            <div className="text-sm">
+                              <span className="text-muted-foreground">Horn Size:</span>
+                              <span className="ml-2 font-medium">{animal.hornSize}"</span>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
