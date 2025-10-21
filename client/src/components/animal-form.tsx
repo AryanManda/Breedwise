@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -32,29 +32,42 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
   const { toast } = useToast();
   const isEditing = !!animal;
 
+  const { data: animals } = useQuery<Animal[]>({
+    queryKey: ["/api/animals"],
+  });
+
   const form = useForm<InsertAnimal>({
     resolver: zodResolver(insertAnimalSchema),
     defaultValues: animal
       ? {
           name: animal.name,
+          species: animal.species,
           age: animal.age,
           sex: animal.sex as "Male" | "Female",
           breed: animal.breed,
-          geneticScore: parseFloat(animal.geneticScore),
+          weight: parseFloat(animal.weight),
           hornSize: animal.hornSize ? parseFloat(animal.hornSize) : undefined,
+          sireId: animal.sireId || undefined,
+          damId: animal.damId || undefined,
         }
       : {
           name: "",
+          species: "",
           age: 0,
           sex: "Male",
           breed: "",
-          geneticScore: 50,
+          weight: 0,
           hornSize: undefined,
+          sireId: undefined,
+          damId: undefined,
         },
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: InsertAnimal) => apiRequest("POST", "/api/animals", data),
+    mutationFn: async (data: InsertAnimal) => {
+      const response = await apiRequest("POST", "/api/animals", data);
+      return await response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/animals"] });
       toast({
@@ -74,8 +87,10 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: InsertAnimal) =>
-      apiRequest("PUT", `/api/animals/${animal!.id}`, data),
+    mutationFn: async (data: InsertAnimal) => {
+      const response = await apiRequest("PUT", `/api/animals/${animal!.id}`, data);
+      return await response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/animals"] });
       toast({
@@ -103,6 +118,9 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
+  const males = animals?.filter((a) => a.sex === "Male" && a.id !== animal?.id) || [];
+  const females = animals?.filter((a) => a.sex === "Female" && a.id !== animal?.id) || [];
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -118,6 +136,24 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
                     placeholder="e.g., Thunder"
                     {...field}
                     data-testid="input-animal-name"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="species"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Species</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="e.g., Cattle"
+                    {...field}
+                    data-testid="input-animal-species"
                   />
                 </FormControl>
                 <FormMessage />
@@ -187,23 +223,20 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
 
           <FormField
             control={form.control}
-            name="geneticScore"
+            name="weight"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Genetic Score</FormLabel>
+                <FormLabel>Weight (lbs)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
-                    placeholder="0-100"
+                    placeholder="e.g., 1200"
                     step="0.1"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    data-testid="input-animal-genetic-score"
+                    data-testid="input-animal-weight"
                   />
                 </FormControl>
-                <FormDescription>
-                  Overall genetic quality rating (0-100)
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -235,11 +268,67 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
           />
         </div>
 
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="sireId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Sire (Father)</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <FormControl>
+                    <SelectTrigger data-testid="select-animal-sire">
+                      <SelectValue placeholder="Select sire (optional)" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {males.map((male) => (
+                      <SelectItem key={male.id} value={male.id}>
+                        {male.name} ({male.breed})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>Optional parent tracking</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="damId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Dam (Mother)</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <FormControl>
+                    <SelectTrigger data-testid="select-animal-dam">
+                      <SelectValue placeholder="Select dam (optional)" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {females.map((female) => (
+                      <SelectItem key={female.id} value={female.id}>
+                        {female.name} ({female.breed})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>Optional parent tracking</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <div className="flex justify-end gap-3">
           <Button
             type="submit"
             disabled={isPending}
-            data-testid="button-submit-animal"
+            data-testid="button-save-animal"
           >
             {isPending ? "Saving..." : isEditing ? "Update Animal" : "Add Animal"}
           </Button>
