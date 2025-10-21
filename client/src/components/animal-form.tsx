@@ -275,14 +275,17 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Sire (Father)</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value || ""}>
+                <Select 
+                  onValueChange={(value) => field.onChange(value === "none" ? undefined : value)} 
+                  value={field.value || "none"}
+                >
                   <FormControl>
                     <SelectTrigger data-testid="select-animal-sire">
                       <SelectValue placeholder="Select sire (optional)" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {males.map((male) => (
                       <SelectItem key={male.id} value={male.id}>
                         {male.name} ({male.breed})
@@ -302,14 +305,17 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Dam (Mother)</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value || ""}>
+                <Select 
+                  onValueChange={(value) => field.onChange(value === "none" ? undefined : value)} 
+                  value={field.value || "none"}
+                >
                   <FormControl>
                     <SelectTrigger data-testid="select-animal-dam">
                       <SelectValue placeholder="Select dam (optional)" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {females.map((female) => (
                       <SelectItem key={female.id} value={female.id}>
                         {female.name} ({female.breed})

@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Users, Sparkles, FileTree } from "lucide-react";
+import { BarChart3, Users, Sparkles, Network } from "lucide-react";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import Animals from "@/pages/animals";
@@ -20,7 +20,7 @@ function Navigation() {
     { path: "/", label: "Dashboard", icon: BarChart3 },
     { path: "/animals", label: "Animals", icon: Users },
     { path: "/breeding", label: "Breeding", icon: Sparkles },
-    { path: "/lineage", label: "Lineage", icon: FileTree },
+    { path: "/lineage", label: "Lineage", icon: Network },
   ];
 
   return (

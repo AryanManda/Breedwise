@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, TrendingUp, Activity, FileTree } from "lucide-react";
+import { Users, TrendingUp, Activity, Network } from "lucide-react";
 import type { Animal } from "@shared/schema";
 import {
   BarChart,
@@ -131,7 +131,7 @@ export default function Dashboard() {
             <CardTitle className="text-sm font-medium">
               Lineage Tracked
             </CardTitle>
-            <FileTree className="h-4 w-4 text-muted-foreground" />
+            <Network className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-lineage-tracked">

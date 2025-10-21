@@ -3,13 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FileTree, Info } from "lucide-react";
+import { Network, Info } from "lucide-react";
 import type { Animal } from "@shared/schema";
 
-interface TreeNode {
-  animal: Animal;
-  children: TreeNode[];
-  level: number;
+interface FamilyGroup {
+  id: string;
+  sire: Animal | null;
+  dam: Animal | null;
+  offspring: Animal[];
 }
 
 export default function Lineage() {
@@ -30,112 +31,174 @@ export default function Lineage() {
     );
   }
 
-  const buildTree = (animals: Animal[]): { trees: TreeNode[], orphans: Animal[] } => {
+  const buildFamilyGroups = (animals: Animal[]): FamilyGroup[] => {
     const animalMap = new Map<string, Animal>();
     animals?.forEach((animal) => animalMap.set(animal.id, animal));
 
-    const roots: TreeNode[] = [];
-    const coveredIds = new Set<string>();
+    const groups: FamilyGroup[] = [];
+    const grouped = new Set<string>();
 
-    const collectCoveredIds = (node: TreeNode) => {
-      coveredIds.add(node.animal.id);
-      node.children.forEach(collectCoveredIds);
-    };
-
-    const buildNodeTree = (animal: Animal, level: number, visited: Set<string> = new Set()): TreeNode => {
-      if (visited.has(animal.id)) {
-        return { animal, children: [], level };
-      }
-      
-      visited.add(animal.id);
-      
-      const children = animals?.filter(
-        (a) => (a.sireId === animal.id || a.damId === animal.id) && !visited.has(a.id)
-      ) || [];
-
-      return {
-        animal,
-        children: children.map((child) => buildNodeTree(child, level + 1, new Set(visited))),
-        level,
-      };
-    };
-
+    // Group offspring by their parent pairs
+    const parentPairMap = new Map<string, Animal[]>();
+    
     animals?.forEach((animal) => {
-      const sireExists = !!(animal.sireId && animalMap.has(animal.sireId));
-      const damExists = !!(animal.damId && animalMap.has(animal.damId));
-      
-      const parentExists = sireExists || damExists;
-      const isRoot = !parentExists;
-      
-      if (isRoot && !coveredIds.has(animal.id)) {
-        const tree = buildNodeTree(animal, 0);
-        roots.push(tree);
-        collectCoveredIds(tree);
+      if (animal.sireId || animal.damId) {
+        const key = `${animal.sireId || "none"}-${animal.damId || "none"}`;
+        if (!parentPairMap.has(key)) {
+          parentPairMap.set(key, []);
+        }
+        parentPairMap.get(key)!.push(animal);
+        grouped.add(animal.id);
       }
     });
 
-    const orphans = animals?.filter((a) => !coveredIds.has(a.id)) || [];
+    // Create family groups
+    parentPairMap.forEach((offspring, key) => {
+      const [sireId, damId] = key.split("-");
+      const sire = sireId !== "none" ? animalMap.get(sireId) || null : null;
+      const dam = damId !== "none" ? animalMap.get(damId) || null : null;
 
-    return { trees: roots, orphans };
+      if (sire) grouped.add(sire.id);
+      if (dam) grouped.add(dam.id);
+
+      groups.push({
+        id: key,
+        sire,
+        dam,
+        offspring,
+      });
+    });
+
+    // Add standalone animals without lineage connections
+    animals?.forEach((animal) => {
+      if (!grouped.has(animal.id)) {
+        groups.push({
+          id: `standalone-${animal.id}`,
+          sire: animal.sex === "Male" ? animal : null,
+          dam: animal.sex === "Female" ? animal : null,
+          offspring: [],
+        });
+      }
+    });
+
+    return groups;
   };
 
-  const { trees, orphans } = buildTree(animals || []);
+  const familyGroups = buildFamilyGroups(animals || []);
 
-  const renderTree = (node: TreeNode, parentPath: string = "") => {
-    const path = `${parentPath}-${node.animal.id}`;
-    const hasChildren = node.children.length > 0;
+  const renderAnimalCard = (animal: Animal | null) => {
+    if (!animal) {
+      return (
+        <div className="w-40 h-32 border-2 border-dashed border-muted rounded-md flex items-center justify-center">
+          <span className="text-xs text-muted-foreground">Unknown</span>
+        </div>
+      );
+    }
 
     return (
-      <div key={path} className="space-y-3">
-        <Card className="hover-elevate" data-testid={`card-animal-${node.animal.id}`}>
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <span>{node.animal.name}</span>
-                  <Badge variant={node.animal.sex === "Male" ? "default" : "secondary"}>
-                    {node.animal.sex}
-                  </Badge>
-                </CardTitle>
-              </div>
+      <Card
+        className="w-40 hover-elevate flex-shrink-0"
+        data-testid={`card-animal-${animal.id}`}
+      >
+        <CardHeader className="p-3 pb-2">
+          <CardTitle className="text-sm flex flex-col gap-1">
+            <span className="truncate font-semibold">{animal.name}</span>
+            <Badge
+              variant={animal.sex === "Male" ? "default" : "secondary"}
+              className="text-xs w-fit px-1.5 py-0"
+            >
+              {animal.sex}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-3 pt-0 space-y-1">
+          <div className="text-xs space-y-0.5">
+            <div className="text-muted-foreground truncate">{animal.breed}</div>
+            <div className="font-mono text-xs font-medium">
+              {parseFloat(animal.weight).toFixed(0)} lbs
             </div>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-0">
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <span className="text-muted-foreground">Species:</span>
-                <span className="ml-2 font-medium">{node.animal.species}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Breed:</span>
-                <span className="ml-2 font-medium">{node.animal.breed}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Age:</span>
-                <span className="ml-2 font-medium">{node.animal.age} yrs</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Weight:</span>
-                <span className="ml-2 font-mono font-medium">
-                  {parseFloat(node.animal.weight).toFixed(0)} lbs
-                </span>
-              </div>
+            <div className="text-muted-foreground">{animal.age} yrs</div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderFamilyGroup = (group: FamilyGroup) => {
+    const hasParents = group.sire || group.dam;
+    const hasOffspring = group.offspring.length > 0;
+
+    if (!hasParents && !hasOffspring) return null;
+
+    const offspringCount = group.offspring.length;
+
+    return (
+      <div key={group.id} className="family-group mb-12 flex flex-col items-center">
+        {/* Parents Row */}
+        {hasParents && (
+          <div className="parents-row flex items-center gap-4 mb-2 relative">
+            {/* Sire */}
+            <div className="relative">
+              {renderAnimalCard(group.sire)}
             </div>
-            {node.animal.hornSize && (
-              <div className="text-sm">
-                <span className="text-muted-foreground">Horn Size:</span>
-                <span className="ml-2 font-medium">{node.animal.hornSize}"</span>
+
+            {/* Connection between parents */}
+            {group.sire && group.dam && (
+              <div className="flex flex-col items-center relative">
+                <div className="w-8 h-0.5 bg-border"></div>
+                {hasOffspring && (
+                  <div className="w-0.5 h-8 bg-border"></div>
+                )}
               </div>
             )}
-          </CardContent>
-        </Card>
 
-        {hasChildren && (
-          <div className="ml-8 pl-4 border-l-2 border-border space-y-3">
-            <div className="text-sm font-medium text-muted-foreground mb-2">
-              Offspring ({node.children.length})
+            {/* Single parent with line down */}
+            {(group.sire || group.dam) && !(group.sire && group.dam) && hasOffspring && (
+              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0.5 h-8 bg-border"></div>
+            )}
+
+            {/* Dam */}
+            <div className="relative">
+              {renderAnimalCard(group.dam)}
             </div>
-            {node.children.map((child) => renderTree(child, path))}
+          </div>
+        )}
+
+        {/* Offspring Row */}
+        {hasOffspring && (
+          <div className="offspring-row flex flex-col items-center relative">
+            {/* Horizontal connector line for multiple offspring */}
+            {offspringCount > 1 && (
+              <div className="horizontal-connector mb-2 relative">
+                <div 
+                  className="h-0.5 bg-border"
+                  style={{ 
+                    width: `${(offspringCount - 1) * 11}rem`
+                  }}
+                ></div>
+              </div>
+            )}
+
+            {/* Single offspring with vertical line */}
+            {offspringCount === 1 && (
+              <div className="w-0.5 h-8 bg-border mb-2"></div>
+            )}
+
+            {/* Offspring cards */}
+            <div className="flex items-start gap-4 flex-wrap justify-center max-w-7xl">
+              {group.offspring.map((child, index) => (
+                <div key={child.id} className="flex flex-col items-center relative">
+                  {/* Vertical line up to horizontal connector for multiple offspring */}
+                  {offspringCount > 1 && (
+                    <div 
+                      className="w-0.5 bg-border mb-2"
+                      style={{ height: "2rem" }}
+                    ></div>
+                  )}
+                  {renderAnimalCard(child)}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -145,11 +208,15 @@ export default function Lineage() {
   const animalsWithoutLineage = animals?.filter((a) => !a.sireId && !a.damId) || [];
   const animalsWithLineage = animals?.filter((a) => a.sireId || a.damId) || [];
 
+  // Separate groups with offspring from those without
+  const groupsWithOffspring = familyGroups.filter(g => g.offspring.length > 0);
+  const standaloneGroups = familyGroups.filter(g => g.offspring.length === 0);
+
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      <div className="space-y-2">
+    <div className="p-6 space-y-6 max-w-full mx-auto">
+      <div className="space-y-2 max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3">
-          <FileTree className="h-8 w-8" />
+          <Network className="h-8 w-8" />
           Lineage & Hereditary Tree
         </h1>
         <p className="text-muted-foreground text-lg">
@@ -158,7 +225,7 @@ export default function Lineage() {
       </div>
 
       {animals && animals.length === 0 ? (
-        <Card className="p-12">
+        <Card className="p-12 max-w-7xl mx-auto">
           <div className="text-center space-y-4">
             <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
               <Info className="h-6 w-6 text-muted-foreground" />
@@ -172,9 +239,9 @@ export default function Lineage() {
           </div>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-7xl mx-auto">
           <Alert>
-            <FileTree className="h-4 w-4" />
+            <Network className="h-4 w-4" />
             <AlertDescription>
               Tracking {animalsWithLineage.length} animal{animalsWithLineage.length !== 1 ? "s" : ""} with lineage data.
               {animalsWithoutLineage.length > 0 && 
@@ -183,14 +250,7 @@ export default function Lineage() {
             </AlertDescription>
           </Alert>
 
-          {trees.length === 0 && orphans.length === 0 && animalsWithLineage.length > 0 ? (
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                All animals in your program have parent records, but no root lineage (animals without parents) to start the tree visualization.
-              </AlertDescription>
-            </Alert>
-          ) : trees.length === 0 && orphans.length === 0 ? (
+          {familyGroups.length === 0 ? (
             <Card className="p-12">
               <div className="text-center space-y-4">
                 <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
@@ -205,72 +265,26 @@ export default function Lineage() {
               </div>
             </Card>
           ) : (
-            <div className="space-y-8">
-              {trees.map((tree) => (
-                <div key={tree.animal.id} className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-sm">
-                      Root Lineage
-                    </Badge>
+            <div className="space-y-12 py-8">
+              {/* Family groups with offspring */}
+              {groupsWithOffspring.length > 0 && (
+                <div className="space-y-8">
+                  <h2 className="text-2xl font-semibold">Family Lineages</h2>
+                  <div className="space-y-12">
+                    {groupsWithOffspring.map((group) => renderFamilyGroup(group))}
                   </div>
-                  {renderTree(tree)}
                 </div>
-              ))}
-              
-              {orphans.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-sm">
-                      Unanchored Animals
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      ({orphans.length} animal{orphans.length !== 1 ? "s" : ""} with circular or missing parent references)
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {orphans.map((animal) => (
-                      <Card key={animal.id} className="hover-elevate" data-testid={`card-orphan-${animal.id}`}>
-                        <CardHeader className="pb-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1">
-                              <CardTitle className="flex items-center gap-2 text-lg">
-                                <span>{animal.name}</span>
-                                <Badge variant={animal.sex === "Male" ? "default" : "secondary"}>
-                                  {animal.sex}
-                                </Badge>
-                              </CardTitle>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-2 pt-0">
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>
-                              <span className="text-muted-foreground">Species:</span>
-                              <span className="ml-2 font-medium">{animal.species}</span>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Breed:</span>
-                              <span className="ml-2 font-medium">{animal.breed}</span>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Age:</span>
-                              <span className="ml-2 font-medium">{animal.age} yrs</span>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Weight:</span>
-                              <span className="ml-2 font-mono font-medium">
-                                {parseFloat(animal.weight).toFixed(0)} lbs
-                              </span>
-                            </div>
-                          </div>
-                          {animal.hornSize && (
-                            <div className="text-sm">
-                              <span className="text-muted-foreground">Horn Size:</span>
-                              <span className="ml-2 font-medium">{animal.hornSize}"</span>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
+              )}
+
+              {/* Standalone animals */}
+              {standaloneGroups.length > 0 && (
+                <div className="space-y-8">
+                  <h2 className="text-2xl font-semibold">Individual Animals</h2>
+                  <div className="flex gap-4 flex-wrap">
+                    {standaloneGroups.map((group) => (
+                      <div key={group.id}>
+                        {renderAnimalCard(group.sire || group.dam)}
+                      </div>
                     ))}
                   </div>
                 </div>
