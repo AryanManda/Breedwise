@@ -20,11 +20,14 @@ export type User = typeof users.$inferSelect;
 export const animals = pgTable("animals", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
+  species: text("species").notNull(),
   age: integer("age").notNull(),
   sex: text("sex").notNull(),
   breed: text("breed").notNull(),
-  geneticScore: decimal("genetic_score", { precision: 4, scale: 1 }).notNull(),
+  weight: decimal("weight", { precision: 6, scale: 1 }).notNull(),
   hornSize: decimal("horn_size", { precision: 5, scale: 2 }),
+  sireId: varchar("sire_id"),
+  damId: varchar("dam_id"),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
@@ -34,8 +37,10 @@ export const insertAnimalSchema = createInsertSchema(animals).omit({
 }).extend({
   age: z.number().int().min(0).max(30),
   sex: z.enum(["Male", "Female"]),
-  geneticScore: z.number().min(0).max(100),
+  weight: z.number().min(0),
   hornSize: z.number().min(0).optional(),
+  sireId: z.string().optional(),
+  damId: z.string().optional(),
 });
 
 export type InsertAnimal = z.infer<typeof insertAnimalSchema>;
@@ -45,7 +50,6 @@ export const breedingRecommendations = pgTable("breeding_recommendations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   parent1Id: varchar("parent1_id").notNull(),
   parent2Id: varchar("parent2_id").notNull(),
-  predictedScore: decimal("predicted_score", { precision: 4, scale: 1 }).notNull(),
   aiExplanation: text("ai_explanation"),
   confidence: decimal("confidence", { precision: 3, scale: 2 }),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
@@ -60,8 +64,8 @@ export type InsertBreedingRecommendation = z.infer<typeof insertBreedingRecommen
 export type BreedingRecommendation = typeof breedingRecommendations.$inferSelect;
 
 export interface OffspringPrediction {
-  predictedGeneticScore: number;
   predictedTraits: {
+    estimatedWeight?: number;
     estimatedHornSize?: number;
     breedStrength: string;
   };
