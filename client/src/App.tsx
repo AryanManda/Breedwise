@@ -20,7 +20,7 @@ function Navigation() {
     { path: "/", label: "Dashboard", icon: BarChart3 },
     { path: "/animals", label: "Animals", icon: Users },
     { path: "/breeding", label: "Breeding", icon: Sparkles },
-    { path: "/lineage", label: "Lineage", icon: Network },
+    { path: "/lineage", label: "Herd Data", icon: Network },
   ];
 
   return (

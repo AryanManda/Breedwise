@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, TrendingUp, Activity, Network } from "lucide-react";
+import { Users, TrendingUp, Network } from "lucide-react";
 import type { Animal } from "@shared/schema";
 import {
   BarChart,
@@ -40,41 +40,22 @@ export default function Dashboard() {
   const totalAnimals = animals?.length || 0;
   const maleCount = animals?.filter((a) => a.sex === "Male").length || 0;
   const femaleCount = animals?.filter((a) => a.sex === "Female").length || 0;
-  
-  const avgWeight =
-    animals?.length
-      ? (
-          animals.reduce((sum, a) => sum + parseFloat(a.weight), 0) /
-          animals.length
-        ).toFixed(1)
-      : "0.0";
 
   const animalsWithParents = animals?.filter((a) => a.sireId || a.damId).length || 0;
 
-  const uniqueBreeds = animals?.length
-    ? new Set(animals.map((a) => a.breed)).size
+  const uniqueSpecies = animals?.length
+    ? new Set(animals.map((a) => a.species)).size
     : 0;
-
-  const ageDistribution = animals?.length
-    ? Object.entries(
-        animals.reduce((acc, a) => {
-          const ageGroup =
-            a.age < 2 ? "0-1" : a.age < 5 ? "2-4" : a.age < 10 ? "5-9" : "10+";
-          acc[ageGroup] = (acc[ageGroup] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>)
-      ).map(([name, value]) => ({ name, value }))
-    : [];
 
   const sexDistribution = [
     { name: "Male", value: maleCount, color: "hsl(var(--chart-3))" },
     { name: "Female", value: femaleCount, color: "hsl(var(--chart-2))" },
   ];
 
-  const breedDistribution = animals?.length
+  const herdDistribution = animals?.length
     ? Object.entries(
         animals.reduce((acc, a) => {
-          acc[a.breed] = (acc[a.breed] || 0) + 1;
+          acc[a.species] = (acc[a.species] || 0) + 1;
           return acc;
         }, {} as Record<string, number>)
       )
@@ -92,7 +73,7 @@ export default function Dashboard() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card data-testid="card-total-animals">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Animals</CardTitle>
@@ -105,24 +86,6 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground mt-1">
               {maleCount} males, {femaleCount} females
             </p>
-          </CardContent>
-        </Card>
-
-        <Card data-testid="card-avg-weight">
-          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Avg Weight
-            </CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div
-              className="text-2xl font-bold font-mono"
-              data-testid="text-avg-weight"
-            >
-              {avgWeight} lbs
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Average across herd</p>
           </CardContent>
         </Card>
 
@@ -157,42 +120,13 @@ export default function Dashboard() {
               {Math.min(maleCount, femaleCount)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {uniqueBreeds} unique breeds
+              {uniqueSpecies} unique species
             </p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Age Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {ageDistribution.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={ageDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                  <YAxis stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--popover))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "0.375rem",
-                    }}
-                  />
-                  <Bar dataKey="value" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                No data available
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader>
             <CardTitle>Male/Female Ratio</CardTitle>
@@ -232,14 +166,14 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-2">
+        <Card>
           <CardHeader>
-            <CardTitle>Breed Distribution</CardTitle>
+            <CardTitle>Herd Distribution</CardTitle>
           </CardHeader>
           <CardContent>
-            {breedDistribution.length > 0 ? (
+            {herdDistribution.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={breedDistribution}>
+                <BarChart data={herdDistribution}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
                   <YAxis stroke="hsl(var(--muted-foreground))" />

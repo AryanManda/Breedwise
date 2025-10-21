@@ -89,7 +89,7 @@ export default function Lineage() {
   const renderAnimalCard = (animal: Animal | null) => {
     if (!animal) {
       return (
-        <div className="w-40 h-32 border-2 border-dashed border-muted rounded-md flex items-center justify-center">
+        <div className="w-40 h-28 border-2 border-dashed border-muted rounded-md flex items-center justify-center">
           <span className="text-xs text-muted-foreground">Unknown</span>
         </div>
       );
@@ -113,11 +113,12 @@ export default function Lineage() {
         </CardHeader>
         <CardContent className="p-3 pt-0 space-y-1">
           <div className="text-xs space-y-0.5">
-            <div className="text-muted-foreground truncate">{animal.breed}</div>
-            <div className="font-mono text-xs font-medium">
-              {parseFloat(animal.weight).toFixed(0)} lbs
-            </div>
-            <div className="text-muted-foreground">{animal.age} yrs</div>
+            <div className="text-muted-foreground truncate">{animal.species}</div>
+            {animal.hornSize && (
+              <div className="font-medium">
+                Horn: {animal.hornSize}"
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -217,10 +218,10 @@ export default function Lineage() {
       <div className="space-y-2 max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3">
           <Network className="h-8 w-8" />
-          Lineage & Hereditary Tree
+          Herd Data
         </h1>
         <p className="text-muted-foreground text-lg">
-          Visualize parent-child relationships and hereditary lineages
+          Visualize parent-child relationships and family structure
         </p>
       </div>
 

@@ -76,18 +76,8 @@ function areRelated(animal1: Animal, animal2: Animal, allAnimals: Animal[]): boo
 function calculateCompatibilityScore(parent1: Animal, parent2: Animal): number {
   let score = 50;
 
-  const weight1 = parseFloat(parent1.weight);
-  const weight2 = parseFloat(parent2.weight);
-  const avgWeight = (weight1 + weight2) / 2;
-  
-  if (avgWeight >= 1200) {
-    score += 15;
-  } else if (avgWeight >= 1000) {
-    score += 10;
-  }
-
-  if (parent1.breed === parent2.breed) {
-    score += 20;
+  if (parent1.species === parent2.species) {
+    score += 30;
   } else {
     score += 5;
   }
@@ -96,16 +86,9 @@ function calculateCompatibilityScore(parent1: Animal, parent2: Animal): number {
     const hornDiff = Math.abs(
       parseFloat(parent1.hornSize) - parseFloat(parent2.hornSize)
     );
-    score += Math.max(0, 15 - hornDiff);
-  }
-
-  const avgAge = (parent1.age + parent2.age) / 2;
-  if (avgAge <= 6) {
-    score += 15;
-  } else if (avgAge <= 10) {
+    score += Math.max(0, 20 - hornDiff);
+  } else if (parent1.hornSize || parent2.hornSize) {
     score += 10;
-  } else {
-    score += 5;
   }
 
   return Math.min(100, Math.max(0, score));

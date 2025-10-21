@@ -70,7 +70,7 @@ export default function Animals() {
 
   const filteredAnimals = animals?.filter((animal) =>
     animal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    animal.breed.toLowerCase().includes(searchTerm.toLowerCase())
+    animal.species.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
 
@@ -118,7 +118,7 @@ export default function Animals() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search by name or breed..."
+          placeholder="Search by name or species..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
@@ -156,10 +156,8 @@ export default function Animals() {
                 <TableHead>Name</TableHead>
                 <TableHead>Species</TableHead>
                 <TableHead>Sex</TableHead>
-                <TableHead>Age</TableHead>
-                <TableHead>Breed</TableHead>
-                <TableHead>Weight</TableHead>
                 <TableHead>Horn Size</TableHead>
+                <TableHead>Health Notes</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -175,13 +173,11 @@ export default function Animals() {
                       {animal.sex}
                     </Badge>
                   </TableCell>
-                  <TableCell>{animal.age} yrs</TableCell>
-                  <TableCell>{animal.breed}</TableCell>
-                  <TableCell className="font-mono">
-                    {parseFloat(animal.weight).toFixed(0)} lbs
-                  </TableCell>
                   <TableCell>
                     {animal.hornSize ? `${animal.hornSize}"` : "—"}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {animal.healthNotes || "—"}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">

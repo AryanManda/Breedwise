@@ -54,7 +54,7 @@ export class MemStorage implements IStorage {
     const animal: Animal = {
       id,
       ...insertAnimal,
-      weight: insertAnimal.weight.toString(),
+      healthNotes: insertAnimal.healthNotes || null,
       hornSize: insertAnimal.hornSize?.toString() || null,
       sireId: insertAnimal.sireId || null,
       damId: insertAnimal.damId || null,
@@ -73,7 +73,7 @@ export class MemStorage implements IStorage {
     const animal: Animal = {
       ...existing,
       ...insertAnimal,
-      weight: insertAnimal.weight.toString(),
+      healthNotes: insertAnimal.healthNotes || null,
       hornSize: insertAnimal.hornSize?.toString() || null,
       sireId: insertAnimal.sireId || null,
       damId: insertAnimal.damId || null,

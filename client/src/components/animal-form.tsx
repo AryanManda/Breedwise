@@ -42,10 +42,8 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
       ? {
           name: animal.name,
           species: animal.species,
-          age: animal.age,
           sex: animal.sex as "Male" | "Female",
-          breed: animal.breed,
-          weight: parseFloat(animal.weight),
+          healthNotes: animal.healthNotes || undefined,
           hornSize: animal.hornSize ? parseFloat(animal.hornSize) : undefined,
           sireId: animal.sireId || undefined,
           damId: animal.damId || undefined,
@@ -53,10 +51,8 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
       : {
           name: "",
           species: "",
-          age: 0,
           sex: "Male",
-          breed: "",
-          weight: 0,
+          healthNotes: undefined,
           hornSize: undefined,
           sireId: undefined,
           damId: undefined,
@@ -163,24 +159,6 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
 
           <FormField
             control={form.control}
-            name="breed"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Breed</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="e.g., Angus"
-                    {...field}
-                    data-testid="input-animal-breed"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="sex"
             render={({ field }) => (
               <FormItem>
@@ -203,40 +181,19 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
 
           <FormField
             control={form.control}
-            name="age"
+            name="healthNotes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Age (years)</FormLabel>
+                <FormLabel>Health Notes/Status</FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
-                    placeholder="e.g., 5"
+                    placeholder="Optional health notes"
                     {...field}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    data-testid="input-animal-age"
+                    value={field.value || ""}
+                    data-testid="input-animal-health-notes"
                   />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="weight"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Weight (lbs)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="e.g., 1200"
-                    step="0.1"
-                    {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    data-testid="input-animal-weight"
-                  />
-                </FormControl>
+                <FormDescription>Optional health status or notes</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -288,7 +245,7 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
                     <SelectItem value="none">None</SelectItem>
                     {males.map((male) => (
                       <SelectItem key={male.id} value={male.id}>
-                        {male.name} ({male.breed})
+                        {male.name} ({male.species})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -318,7 +275,7 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
                     <SelectItem value="none">None</SelectItem>
                     {females.map((female) => (
                       <SelectItem key={female.id} value={female.id}>
-                        {female.name} ({female.breed})
+                        {female.name} ({female.species})
                       </SelectItem>
                     ))}
                   </SelectContent>

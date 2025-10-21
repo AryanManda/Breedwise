@@ -21,10 +21,8 @@ export const animals = pgTable("animals", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   species: text("species").notNull(),
-  age: integer("age").notNull(),
   sex: text("sex").notNull(),
-  breed: text("breed").notNull(),
-  weight: decimal("weight", { precision: 6, scale: 1 }).notNull(),
+  healthNotes: text("health_notes"),
   hornSize: decimal("horn_size", { precision: 5, scale: 2 }),
   sireId: varchar("sire_id"),
   damId: varchar("dam_id"),
@@ -35,9 +33,8 @@ export const insertAnimalSchema = createInsertSchema(animals).omit({
   id: true,
   createdAt: true,
 }).extend({
-  age: z.number().int().min(0).max(30),
   sex: z.enum(["Male", "Female"]),
-  weight: z.number().min(0),
+  healthNotes: z.string().optional(),
   hornSize: z.number().min(0).optional(),
   sireId: z.string().optional(),
   damId: z.string().optional(),
@@ -65,9 +62,8 @@ export type BreedingRecommendation = typeof breedingRecommendations.$inferSelect
 
 export interface OffspringPrediction {
   predictedTraits: {
-    estimatedWeight?: number;
     estimatedHornSize?: number;
-    breedStrength: string;
+    traitStrength: string;
   };
   confidence: number;
   explanation: string;
