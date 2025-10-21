@@ -24,7 +24,10 @@ export default function Breeding() {
   });
 
   const recommendationsMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/recommendations"),
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/recommendations");
+      return await response.json();
+    },
     onError: (error: any) => {
       toast({
         title: "Error",
