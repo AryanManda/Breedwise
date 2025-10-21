@@ -115,7 +115,7 @@ export default function Breeding() {
             <div>
               <h3 className="text-xl font-semibold">Ready to Generate Recommendations</h3>
               <p className="text-muted-foreground mt-1">
-                Click the button above to get AI-powered breeding pair suggestions based on genetic compatibility.
+                Click the button above to get AI-powered breeding pair suggestions based on trait compatibility and lineage tracking.
               </p>
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function Breeding() {
       ) : recommendations.length === 0 ? (
         <Alert>
           <AlertDescription>
-            No suitable breeding pairs found. This may be due to genetic incompatibility or insufficient data.
+            No suitable breeding pairs found. This may be due to close lineage relationships or insufficient data.
           </AlertDescription>
         </Alert>
       ) : (
@@ -131,7 +131,7 @@ export default function Breeding() {
           <Alert>
             <Sparkles className="h-4 w-4" />
             <AlertDescription>
-              Found {recommendations.length} optimal breeding pair{recommendations.length !== 1 ? "s" : ""} based on genetic analysis.
+              Found {recommendations.length} optimal breeding pair{recommendations.length !== 1 ? "s" : ""} based on compatibility analysis.
             </AlertDescription>
           </Alert>
 
@@ -151,7 +151,7 @@ export default function Breeding() {
                       </Badge>
                     </CardTitle>
                     <CardDescription className="mt-1">
-                      Compatibility score based on genetic analysis
+                      Compatibility score based on trait and lineage analysis
                     </CardDescription>
                   </div>
                 </div>
@@ -169,6 +169,10 @@ export default function Breeding() {
                       <p className="text-xl font-bold">{rec.parent1.name}</p>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
+                          <span className="text-muted-foreground">Species:</span>
+                          <span className="ml-2 font-medium">{rec.parent1.species}</span>
+                        </div>
+                        <div>
                           <span className="text-muted-foreground">Breed:</span>
                           <span className="ml-2 font-medium">{rec.parent1.breed}</span>
                         </div>
@@ -177,9 +181,9 @@ export default function Breeding() {
                           <span className="ml-2 font-medium">{rec.parent1.age} yrs</span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Genetic:</span>
-                          <span className="ml-2 font-mono font-semibold text-chart-1">
-                            {rec.parent1.geneticScore}
+                          <span className="text-muted-foreground">Weight:</span>
+                          <span className="ml-2 font-mono font-medium">
+                            {parseFloat(rec.parent1.weight).toFixed(0)} lbs
                           </span>
                         </div>
                         {rec.parent1.hornSize && (
@@ -203,6 +207,10 @@ export default function Breeding() {
                       <p className="text-xl font-bold">{rec.parent2.name}</p>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
+                          <span className="text-muted-foreground">Species:</span>
+                          <span className="ml-2 font-medium">{rec.parent2.species}</span>
+                        </div>
+                        <div>
                           <span className="text-muted-foreground">Breed:</span>
                           <span className="ml-2 font-medium">{rec.parent2.breed}</span>
                         </div>
@@ -211,9 +219,9 @@ export default function Breeding() {
                           <span className="ml-2 font-medium">{rec.parent2.age} yrs</span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Genetic:</span>
-                          <span className="ml-2 font-mono font-semibold text-chart-1">
-                            {rec.parent2.geneticScore}
+                          <span className="text-muted-foreground">Weight:</span>
+                          <span className="ml-2 font-mono font-medium">
+                            {parseFloat(rec.parent2.weight).toFixed(0)} lbs
                           </span>
                         </div>
                         {rec.parent2.hornSize && (
@@ -230,19 +238,21 @@ export default function Breeding() {
                 <div className="border-t pt-6">
                   <div className="flex items-center gap-3 mb-4">
                     <TrendingUp className="h-5 w-5 text-primary" />
-                    <h4 className="font-semibold text-lg">Predicted Offspring</h4>
+                    <h4 className="font-semibold text-lg">Predicted Offspring Traits</h4>
                   </div>
                   <div className="grid md:grid-cols-3 gap-4 mb-4">
-                    <Card className="bg-muted/50">
-                      <CardContent className="pt-4">
-                        <p className="text-sm text-muted-foreground mb-1">
-                          Predicted Genetic Score
-                        </p>
-                        <p className="text-2xl font-bold font-mono text-chart-1">
-                          {rec.prediction.predictedGeneticScore.toFixed(1)}
-                        </p>
-                      </CardContent>
-                    </Card>
+                    {rec.prediction.predictedTraits.estimatedWeight && (
+                      <Card className="bg-muted/50">
+                        <CardContent className="pt-4">
+                          <p className="text-sm text-muted-foreground mb-1">
+                            Estimated Weight
+                          </p>
+                          <p className="text-2xl font-bold font-mono">
+                            {rec.prediction.predictedTraits.estimatedWeight.toFixed(0)} lbs
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
                     <Card className="bg-muted/50">
                       <CardContent className="pt-4">
                         <p className="text-sm text-muted-foreground mb-1">Breed Strength</p>
