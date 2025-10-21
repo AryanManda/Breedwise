@@ -6,11 +6,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Users, Sparkles } from "lucide-react";
+import { BarChart3, Users, Sparkles, FileTree } from "lucide-react";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import Animals from "@/pages/animals";
 import Breeding from "@/pages/breeding";
+import Lineage from "@/pages/lineage";
 
 function Navigation() {
   const [location] = useLocation();
@@ -19,6 +20,7 @@ function Navigation() {
     { path: "/", label: "Dashboard", icon: BarChart3 },
     { path: "/animals", label: "Animals", icon: Users },
     { path: "/breeding", label: "Breeding", icon: Sparkles },
+    { path: "/lineage", label: "Lineage", icon: FileTree },
   ];
 
   return (
@@ -68,6 +70,7 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/animals" component={Animals} />
       <Route path="/breeding" component={Breeding} />
+      <Route path="/lineage" component={Lineage} />
       <Route component={NotFound} />
     </Switch>
   );
