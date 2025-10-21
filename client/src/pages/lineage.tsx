@@ -37,20 +37,32 @@ export default function Lineage() {
     const roots: TreeNode[] = [];
     const processed = new Set<string>();
 
-    const buildNodeTree = (animal: Animal, level: number): TreeNode => {
+    const buildNodeTree = (animal: Animal, level: number, visited: Set<string> = new Set()): TreeNode => {
+      if (visited.has(animal.id)) {
+        return { animal, children: [], level };
+      }
+      
+      visited.add(animal.id);
+      
       const children = animals?.filter(
-        (a) => a.sireId === animal.id || a.damId === animal.id
+        (a) => (a.sireId === animal.id || a.damId === animal.id) && !visited.has(a.id)
       ) || [];
 
       return {
         animal,
-        children: children.map((child) => buildNodeTree(child, level + 1)),
+        children: children.map((child) => buildNodeTree(child, level + 1, new Set(visited))),
         level,
       };
     };
 
     animals?.forEach((animal) => {
-      if (!animal.sireId && !animal.damId && !processed.has(animal.id)) {
+      const sireExists = animal.sireId && animalMap.has(animal.sireId);
+      const damExists = animal.damId && animalMap.has(animal.damId);
+      
+      const parentExists = sireExists || damExists;
+      const isRoot = !parentExists;
+      
+      if (isRoot && !processed.has(animal.id)) {
         roots.push(buildNodeTree(animal, 0));
         processed.add(animal.id);
       }
