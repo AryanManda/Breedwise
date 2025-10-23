@@ -134,6 +134,13 @@ export class MemStorage implements IStorage {
   }
 
   async deleteHerd(id: string): Promise<boolean> {
+    // Unassign all animals from this herd before deleting
+    const animalsArray = Array.from(this.animals.entries());
+    for (const [animalId, animal] of animalsArray) {
+      if (animal.herdId === id) {
+        this.animals.set(animalId, { ...animal, herdId: null });
+      }
+    }
     return this.herds.delete(id);
   }
 }

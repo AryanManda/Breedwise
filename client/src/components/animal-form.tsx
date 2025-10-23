@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { insertAnimalSchema, type InsertAnimal, type Animal } from "@shared/schema";
+import { insertAnimalSchema, type InsertAnimal, type Animal, type Herd } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,6 +36,10 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
     queryKey: ["/api/animals"],
   });
 
+  const { data: herds } = useQuery<Herd[]>({
+    queryKey: ["/api/herds"],
+  });
+
   const form = useForm<InsertAnimal>({
     resolver: zodResolver(insertAnimalSchema),
     defaultValues: animal
@@ -47,6 +51,7 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
           hornSize: animal.hornSize ? parseFloat(animal.hornSize) : undefined,
           sireId: animal.sireId || undefined,
           damId: animal.damId || undefined,
+          herdId: animal.herdId || undefined,
         }
       : {
           name: "",
@@ -56,6 +61,7 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
           hornSize: undefined,
           sireId: undefined,
           damId: undefined,
+          herdId: undefined,
         },
   });
 
@@ -219,6 +225,38 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
                   />
                 </FormControl>
                 <FormDescription>Optional measurement</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="herdId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Herd</FormLabel>
+                <Select 
+                  onValueChange={(value) => field.onChange(value === "none" ? undefined : value)} 
+                  value={field.value || "none"}
+                >
+                  <FormControl>
+                    <SelectTrigger data-testid="select-animal-herd">
+                      <SelectValue placeholder="Select herd (optional)" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none" data-testid="select-option-no-herd">No Herd</SelectItem>
+                    {herds?.map((herd) => (
+                      <SelectItem key={herd.id} value={herd.id} data-testid={`select-option-herd-${herd.id}`}>
+                        {herd.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>Assign to a herd for organization</FormDescription>
                 <FormMessage />
               </FormItem>
             )}

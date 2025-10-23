@@ -45,14 +45,31 @@ BreedWise is an AI-powered breeding recommendation platform that helps ranchers 
 - Breeding strategy recommendations from Gemini AI
 - Herd scoring algorithm
 
+### Herd Organization
+- Create and manage multiple herds for organizing animals
+- Assign animals to herds during creation or editing
+- Filter and view animals by herd on Herd Data page
+- Edit herd names and descriptions
+- Delete herds (animals remain, just unassigned)
+- Visual indicators showing animal count per herd
+- Quick reassignment of animals between herds via dropdown selectors
+
 ### Herd Data
 - Visual family tree showing parent-child relationships
+- Organize and filter animals by herd
 - Track sire (father) and dam (mother) for each animal
 - Displays lineage depth and offspring counts
 - Identifies root animals (those without parent records)
 - Prevents circular references in lineage
+- Herd-specific filtering for focused lineage viewing
 
 ## Data Model
+
+### Herd
+- id: UUID
+- name: string
+- description: text (optional)
+- createdAt: timestamp
 
 ### Animal
 - id: UUID
@@ -63,6 +80,7 @@ BreedWise is an AI-powered breeding recommendation platform that helps ranchers 
 - healthNotes: text (optional)
 - sireId: UUID (optional, references male parent)
 - damId: UUID (optional, references female parent)
+- herdId: UUID (optional, references herd)
 - createdAt: timestamp
 
 ### Breeding Recommendation
@@ -79,6 +97,12 @@ BreedWise is an AI-powered breeding recommendation platform that helps ranchers 
 - `POST /api/animals` - Create new animal
 - `PUT /api/animals/:id` - Update animal
 - `DELETE /api/animals/:id` - Delete animal
+
+### Herds
+- `GET /api/herds` - Fetch all herds
+- `POST /api/herds` - Create new herd
+- `PUT /api/herds/:id` - Update herd
+- `DELETE /api/herds/:id` - Delete herd (animals remain, just unassigned)
 
 ### Breeding Recommendations
 - `POST /api/recommendations` - Generate AI-powered herd breeding analysis
