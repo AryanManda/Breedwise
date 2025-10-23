@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertAnimalSchema } from "@shared/schema";
+import { insertAnimalSchema, insertHerdSchema } from "@shared/schema";
 import { generateHerdBreedingRecommendations } from "./breeding-algorithm";
 import { z } from "zod";
 
@@ -75,6 +75,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting animal:", error);
       res.status(500).json({ error: "Failed to delete animal" });
+    }
+  });
+
+  // Get all herds
+  app.get("/api/herds", async (_req, res) => {
+    try {
+      const herds = await storage.getAllHerds();
+      res.json(herds);
+    } catch (error) {
+      console.error("Error fetching herds:", error);
+      res.status(500).json({ error: "Failed to fetch herds" });
+    }
+  });
+
+  // Get single herd
+  app.get("/api/herds/:id", async (req, res) => {
+    try {
+      const herd = await storage.getHerd(req.params.id);
+      if (!herd) {
+        return res.status(404).json({ error: "Herd not found" });
+      }
+      res.json(herd);
+    } catch (error) {
+      console.error("Error fetching herd:", error);
+      res.status(500).json({ error: "Failed to fetch herd" });
+    }
+  });
+
+  // Create herd
+  app.post("/api/herds", async (req, res) => {
+    try {
+      const validatedData = insertHerdSchema.parse(req.body);
+      const herd = await storage.createHerd(validatedData);
+      res.status(201).json(herd);
+    } catch (error) {
+      console.error("Error creating herd:", error);
+      if (error instanceof Error && error.name === "ZodError") {
+        return res.status(400).json({ error: "Invalid herd data", details: error });
+      }
+      res.status(500).json({ error: "Failed to create herd" });
+    }
+  });
+
+  // Update herd
+  app.put("/api/herds/:id", async (req, res) => {
+    try {
+      const validatedData = insertHerdSchema.parse(req.body);
+      const herd = await storage.updateHerd(req.params.id, validatedData);
+      if (!herd) {
+        return res.status(404).json({ error: "Herd not found" });
+      }
+      res.json(herd);
+    } catch (error) {
+      console.error("Error updating herd:", error);
+      if (error instanceof Error && error.name === "ZodError") {
+        return res.status(400).json({ error: "Invalid herd data", details: error });
+      }
+      res.status(500).json({ error: "Failed to update herd" });
+    }
+  });
+
+  // Delete herd
+  app.delete("/api/herds/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteHerd(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Herd not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting herd:", error);
+      res.status(500).json({ error: "Failed to delete herd" });
     }
   });
 
