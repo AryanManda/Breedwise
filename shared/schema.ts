@@ -17,6 +17,23 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
+export const herds = pgTable("herds", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+});
+
+export const insertHerdSchema = createInsertSchema(herds).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  description: z.string().optional(),
+});
+
+export type InsertHerd = z.infer<typeof insertHerdSchema>;
+export type Herd = typeof herds.$inferSelect;
+
 export const animals = pgTable("animals", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
@@ -26,6 +43,7 @@ export const animals = pgTable("animals", {
   hornSize: decimal("horn_size", { precision: 5, scale: 2 }),
   sireId: varchar("sire_id"),
   damId: varchar("dam_id"),
+  herdId: varchar("herd_id"),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
@@ -38,6 +56,7 @@ export const insertAnimalSchema = createInsertSchema(animals).omit({
   hornSize: z.number().min(0).optional(),
   sireId: z.string().optional(),
   damId: z.string().optional(),
+  herdId: z.string().optional(),
 });
 
 export type InsertAnimal = z.infer<typeof insertAnimalSchema>;
