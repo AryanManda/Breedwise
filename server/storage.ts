@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Animal, type InsertAnimal } from "@shared/schema";
+import { type User, type InsertUser, type Animal, type InsertAnimal, type Herd, type InsertHerd } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -11,15 +11,23 @@ export interface IStorage {
   createAnimal(animal: InsertAnimal): Promise<Animal>;
   updateAnimal(id: string, animal: InsertAnimal): Promise<Animal | undefined>;
   deleteAnimal(id: string): Promise<boolean>;
+
+  getAllHerds(): Promise<Herd[]>;
+  getHerd(id: string): Promise<Herd | undefined>;
+  createHerd(herd: InsertHerd): Promise<Herd>;
+  updateHerd(id: string, herd: InsertHerd): Promise<Herd | undefined>;
+  deleteHerd(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private animals: Map<string, Animal>;
+  private herds: Map<string, Herd>;
 
   constructor() {
     this.users = new Map();
     this.animals = new Map();
+    this.herds = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -58,6 +66,7 @@ export class MemStorage implements IStorage {
       hornSize: insertAnimal.hornSize?.toString() || null,
       sireId: insertAnimal.sireId || null,
       damId: insertAnimal.damId || null,
+      herdId: insertAnimal.herdId || null,
       createdAt: new Date(),
     };
     this.animals.set(id, animal);
@@ -77,6 +86,7 @@ export class MemStorage implements IStorage {
       hornSize: insertAnimal.hornSize?.toString() || null,
       sireId: insertAnimal.sireId || null,
       damId: insertAnimal.damId || null,
+      herdId: insertAnimal.herdId || null,
     };
     this.animals.set(id, animal);
     return animal;
@@ -84,6 +94,47 @@ export class MemStorage implements IStorage {
 
   async deleteAnimal(id: string): Promise<boolean> {
     return this.animals.delete(id);
+  }
+
+  async getAllHerds(): Promise<Herd[]> {
+    return Array.from(this.herds.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  async getHerd(id: string): Promise<Herd | undefined> {
+    return this.herds.get(id);
+  }
+
+  async createHerd(insertHerd: InsertHerd): Promise<Herd> {
+    const id = randomUUID();
+    const herd: Herd = {
+      id,
+      ...insertHerd,
+      description: insertHerd.description || null,
+      createdAt: new Date(),
+    };
+    this.herds.set(id, herd);
+    return herd;
+  }
+
+  async updateHerd(id: string, insertHerd: InsertHerd): Promise<Herd | undefined> {
+    const existing = this.herds.get(id);
+    if (!existing) {
+      return undefined;
+    }
+
+    const herd: Herd = {
+      ...existing,
+      ...insertHerd,
+      description: insertHerd.description || null,
+    };
+    this.herds.set(id, herd);
+    return herd;
+  }
+
+  async deleteHerd(id: string): Promise<boolean> {
+    return this.herds.delete(id);
   }
 }
 
