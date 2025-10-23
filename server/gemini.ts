@@ -1,48 +1,66 @@
 import { GoogleGenAI } from "@google/genai";
-import type { Animal, OffspringPrediction } from "@shared/schema";
+import type { Animal, HerdAnalysis } from "@shared/schema";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
-export async function analyzeBreedingPair(
-  parent1: Animal,
-  parent2: Animal
-): Promise<OffspringPrediction> {
+export async function analyzeHerd(
+  herdAnimals: Animal[],
+  hasRelatedAnimals: boolean = false,
+  relatedPairs: Array<{ animal1: string; animal2: string; relationship: string }> = []
+): Promise<HerdAnalysis> {
   try {
-    const systemPrompt = `You are an expert animal breeding consultant specializing in hereditary tracking and trait optimization. 
-Analyze the breeding pair and provide predictions about their offspring focusing on:
-1. Horn/antler size potential (if applicable)
-2. Trait strength and genetic quality
-3. Overall breeding value
+    const males = herdAnimals.filter(a => a.sex === "Male");
+    const females = herdAnimals.filter(a => a.sex === "Female");
+    
+    const systemPrompt = `You are an expert animal breeding consultant specializing in herd management and breeding strategies. 
+Analyze the entire herd and provide comprehensive breeding recommendations focusing on:
+1. Genetic diversity and trait strength across the herd
+2. Estimated offspring production potential
+3. Horn/antler size trends and improvement potential
+4. Overall herd quality and breeding strategy
+5. Health considerations across the herd
 
 Respond with JSON in this exact format:
 {
-  "predictedTraits": {
-    "estimatedHornSize": number | null,
-    "traitStrength": string
+  "predictedOutcomes": {
+    "estimatedOffspringCount": number,
+    "averageHornSize": number | null,
+    "traitStrength": string,
+    "geneticDiversity": string
   },
   "confidence": number,
-  "explanation": string
+  "explanation": string,
+  "breedingStrategy": string
 }`;
 
-    const userPrompt = `Analyze this breeding pair:
+    const animalDescriptions = herdAnimals.map((animal, idx) => 
+      `Animal ${idx + 1} (${animal.sex}):
+- Name: ${animal.name}
+- Species: ${animal.species}
+- Horn Size: ${animal.hornSize || "N/A"}
+- Health Status: ${animal.healthNotes || "No notes"}`
+    ).join("\n\n");
 
-Parent 1 (${parent1.sex}):
-- Name: ${parent1.name}
-- Species: ${parent1.species}
-- Horn Size: ${parent1.hornSize || "N/A"}
-- Health Status: ${parent1.healthNotes || "No notes"}
+    const lineageWarning = hasRelatedAnimals
+      ? `\n\nWARNING: This herd contains related animals that should not breed together:\n${relatedPairs.map(p => `- ${p.animal1} and ${p.animal2} (${p.relationship})`).join('\n')}\n\nYour breeding strategy MUST address separating these related animals to avoid inbreeding.`
+      : '';
 
-Parent 2 (${parent2.sex}):
-- Name: ${parent2.name}
-- Species: ${parent2.species}
-- Horn Size: ${parent2.hornSize || "N/A"}
-- Health Status: ${parent2.healthNotes || "No notes"}
+    const userPrompt = `Analyze this breeding herd:
+
+Total Animals: ${herdAnimals.length}
+Males: ${males.length}
+Females: ${females.length}
+
+${animalDescriptions}${lineageWarning}
 
 Provide:
-1. Trait strength assessment (e.g., "Excellent", "Strong", "Good", "Fair")
-2. Estimated horn size if both parents have measurements (or null)
-3. Confidence level (0.0 to 1.0)
-4. A detailed explanation of why this is a good breeding pair, considering species compatibility, trait inheritance, horn size potential, and overall offspring quality`;
+1. Estimated offspring count this herd could produce in one breeding season
+2. Genetic diversity assessment (e.g., "Excellent", "Good", "Fair", "Limited")
+3. Overall trait strength (e.g., "Excellent", "Strong", "Good", "Fair")
+4. Average horn size prediction for offspring (or null if not applicable)
+5. Confidence level (0.0 to 1.0)
+6. A detailed explanation of the herd's breeding potential, genetic diversity, and health considerations
+7. A recommended breeding strategy for this herd to optimize offspring quality${hasRelatedAnimals ? ' while avoiding inbreeding between related animals' : ''}`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
@@ -52,18 +70,21 @@ Provide:
         responseSchema: {
           type: "object",
           properties: {
-            predictedTraits: {
+            predictedOutcomes: {
               type: "object",
               properties: {
-                estimatedHornSize: { type: ["number", "null"] },
+                estimatedOffspringCount: { type: "number" },
+                averageHornSize: { type: ["number", "null"] },
                 traitStrength: { type: "string" },
+                geneticDiversity: { type: "string" },
               },
-              required: ["traitStrength"],
+              required: ["estimatedOffspringCount", "traitStrength", "geneticDiversity"],
             },
             confidence: { type: "number" },
             explanation: { type: "string" },
+            breedingStrategy: { type: "string" },
           },
-          required: ["predictedTraits", "confidence", "explanation"],
+          required: ["predictedOutcomes", "confidence", "explanation", "breedingStrategy"],
         },
       },
       contents: userPrompt,
@@ -73,13 +94,23 @@ Provide:
 
     if (rawJson) {
       const data = JSON.parse(rawJson);
+      
+      const relatedWarning = hasRelatedAnimals
+        ? `Related animals detected: ${relatedPairs.map(p => `${p.animal1} & ${p.animal2} (${p.relationship})`).join(', ')}. Avoid breeding these pairs to prevent inbreeding.`
+        : undefined;
+      
       return {
-        predictedTraits: {
-          estimatedHornSize: data.predictedTraits.estimatedHornSize,
-          traitStrength: data.predictedTraits.traitStrength,
+        predictedOutcomes: {
+          estimatedOffspringCount: data.predictedOutcomes.estimatedOffspringCount,
+          averageHornSize: data.predictedOutcomes.averageHornSize,
+          traitStrength: data.predictedOutcomes.traitStrength,
+          geneticDiversity: data.predictedOutcomes.geneticDiversity,
         },
         confidence: Math.min(1, Math.max(0, data.confidence)),
         explanation: data.explanation,
+        breedingStrategy: data.breedingStrategy,
+        hasRelatedAnimals,
+        relatedAnimalsWarning: relatedWarning,
       };
     } else {
       throw new Error("Empty response from Gemini");
@@ -87,24 +118,42 @@ Provide:
   } catch (error) {
     console.error("Gemini AI error:", error);
     
+    const males = herdAnimals.filter(a => a.sex === "Male");
+    const females = herdAnimals.filter(a => a.sex === "Female");
+    const estimatedOffspring = Math.min(males.length, females.length);
+    
+    const withHorns = herdAnimals.filter(a => a.hornSize);
+    const avgHornSize = withHorns.length > 0
+      ? withHorns.reduce((sum, a) => sum + parseFloat(a.hornSize!), 0) / withHorns.length
+      : undefined;
+    
+    const species = new Set(herdAnimals.map(a => a.species));
+    const geneticDiversity = species.size > 1 ? "Good" : "Limited";
+    
+    const relatedWarning = hasRelatedAnimals
+      ? `Related animals detected: ${relatedPairs.map(p => `${p.animal1} & ${p.animal2} (${p.relationship})`).join(', ')}. Avoid breeding these pairs to prevent inbreeding.`
+      : undefined;
+    
     return {
-      predictedTraits: {
-        estimatedHornSize:
-          parent1.hornSize && parent2.hornSize
-            ? (parseFloat(parent1.hornSize) + parseFloat(parent2.hornSize)) / 2
-            : undefined,
-        traitStrength: parent1.species === parent2.species ? "Strong" : "Good",
+      predictedOutcomes: {
+        estimatedOffspringCount: estimatedOffspring,
+        averageHornSize: avgHornSize,
+        traitStrength: "Good",
+        geneticDiversity,
       },
       confidence: 0.7,
-      explanation: `This breeding pair shows good compatibility. ${
-        parent1.species === parent2.species 
-          ? `Both parents are ${parent1.species}, which maintains species purity and consistent trait inheritance.`
-          : `This cross-species pairing between ${parent1.species} may introduce genetic diversity.`
-      }${
-        parent1.hornSize && parent2.hornSize 
-          ? ` Horn size should average around ${((parseFloat(parent1.hornSize) + parseFloat(parent2.hornSize)) / 2).toFixed(1)} inches.`
+      explanation: `This herd of ${herdAnimals.length} animals (${males.length} males, ${females.length} females) shows ${geneticDiversity.toLowerCase()} genetic diversity with ${species.size} species represented. ${
+        avgHornSize 
+          ? `The average horn size is ${avgHornSize.toFixed(1)} inches, which should produce strong offspring traits.`
+          : ''
+      }${hasRelatedAnimals ? ' WARNING: This herd contains related animals - see breeding strategy for guidance.' : ''}`,
+      breedingStrategy: `With ${males.length} males and ${females.length} females, focus on rotating breeding pairs to maximize genetic diversity while maintaining strong traits. Expected offspring: approximately ${estimatedOffspring} per season.${
+        hasRelatedAnimals 
+          ? ' IMPORTANT: Separate related animals to avoid inbreeding - do not breed parent-child pairs or half-siblings together.'
           : ''
       }`,
+      hasRelatedAnimals,
+      relatedAnimalsWarning: relatedWarning,
     };
   }
 }

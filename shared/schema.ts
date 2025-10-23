@@ -45,8 +45,7 @@ export type Animal = typeof animals.$inferSelect;
 
 export const breedingRecommendations = pgTable("breeding_recommendations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  parent1Id: varchar("parent1_id").notNull(),
-  parent2Id: varchar("parent2_id").notNull(),
+  animalIds: text("animal_ids").notNull(),
   aiExplanation: text("ai_explanation"),
   confidence: decimal("confidence", { precision: 3, scale: 2 }),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
@@ -60,18 +59,22 @@ export const insertBreedingRecommendationSchema = createInsertSchema(breedingRec
 export type InsertBreedingRecommendation = z.infer<typeof insertBreedingRecommendationSchema>;
 export type BreedingRecommendation = typeof breedingRecommendations.$inferSelect;
 
-export interface OffspringPrediction {
-  predictedTraits: {
-    estimatedHornSize?: number;
+export interface HerdAnalysis {
+  predictedOutcomes: {
+    estimatedOffspringCount: number;
+    averageHornSize?: number;
     traitStrength: string;
+    geneticDiversity: string;
   };
   confidence: number;
   explanation: string;
+  breedingStrategy: string;
+  hasRelatedAnimals: boolean;
+  relatedAnimalsWarning?: string;
 }
 
-export interface BreedingPairRecommendation {
-  parent1: Animal;
-  parent2: Animal;
-  prediction: OffspringPrediction;
-  compatibilityScore: number;
+export interface HerdBreedingRecommendation {
+  herdAnimals: Animal[];
+  analysis: HerdAnalysis;
+  herdScore: number;
 }

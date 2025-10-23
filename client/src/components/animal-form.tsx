@@ -163,15 +163,15 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Sex</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger data-testid="select-animal-sex">
                       <SelectValue placeholder="Select sex" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="Male">Male</SelectItem>
-                    <SelectItem value="Female">Female</SelectItem>
+                    <SelectItem value="Male" data-testid="select-option-male">Male</SelectItem>
+                    <SelectItem value="Female" data-testid="select-option-female">Female</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

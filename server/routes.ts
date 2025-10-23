@@ -2,7 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertAnimalSchema } from "@shared/schema";
-import { generateBreedingRecommendations } from "./breeding-algorithm";
+import { generateHerdBreedingRecommendations } from "./breeding-algorithm";
+import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all animals
@@ -77,19 +78,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Generate breeding recommendations
-  app.post("/api/recommendations", async (_req, res) => {
+  // Generate herd breeding recommendations
+  app.post("/api/recommendations", async (req, res) => {
     try {
-      const animals = await storage.getAllAnimals();
-
-      if (animals.length < 2) {
-        return res.json([]);
+      const schema = z.object({
+        animalIds: z.array(z.string()).min(2, "At least 2 animals required for breeding analysis"),
+      });
+      
+      const { animalIds } = schema.parse(req.body);
+      
+      const allAnimals = await storage.getAllAnimals();
+      const selectedAnimals = allAnimals.filter(a => animalIds.includes(a.id));
+      
+      if (selectedAnimals.length < 2) {
+        return res.status(400).json({ error: "At least 2 valid animals required" });
       }
 
-      const recommendations = await generateBreedingRecommendations(animals);
+      const recommendations = await generateHerdBreedingRecommendations(selectedAnimals);
       res.json(recommendations);
     } catch (error) {
       console.error("Error generating recommendations:", error);
+      if (error instanceof Error && error.name === "ZodError") {
+        return res.status(400).json({ error: "Invalid request data", details: error });
+      }
       res.status(500).json({ error: "Failed to generate breeding recommendations" });
     }
   });
