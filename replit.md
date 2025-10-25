@@ -9,6 +9,7 @@ BreedWise is an AI-powered breeding recommendation platform that helps ranchers 
 - **AI**: Google Gemini API (gemini-2.5-flash)
 - **Storage**: In-memory storage (MemStorage)
 - **State Management**: TanStack React Query
+- **Responsive Design**: Mobile-first with hamburger menu navigation
 
 ## Features
 

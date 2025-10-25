@@ -6,7 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Users, Sparkles, Network } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { BarChart3, Users, Sparkles, Network, Menu } from "lucide-react";
+import { useState } from "react";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import Animals from "@/pages/animals";
@@ -15,6 +17,7 @@ import Lineage from "@/pages/lineage";
 
 function Navigation() {
   const [location] = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
     { path: "/", label: "Dashboard", icon: BarChart3 },
@@ -25,7 +28,7 @@ function Navigation() {
 
   return (
     <header className="border-b bg-card">
-      <div className="max-w-7xl mx-auto px-6 py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link href="/">
@@ -57,7 +60,47 @@ function Navigation() {
               })}
             </nav>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden"
+                  data-testid="button-mobile-menu"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-64">
+                <div className="flex flex-col gap-4 mt-8">
+                  <h2 className="text-lg font-semibold px-2">Navigation</h2>
+                  <nav className="flex flex-col gap-2">
+                    {navItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = location === item.path;
+                      return (
+                        <Button
+                          key={item.path}
+                          variant={isActive ? "secondary" : "ghost"}
+                          className="gap-2 justify-start"
+                          asChild
+                          onClick={() => setMobileMenuOpen(false)}
+                          data-testid={`link-mobile-${item.label.toLowerCase()}`}
+                        >
+                          <Link href={item.path}>
+                            <Icon className="h-4 w-4" />
+                            {item.label}
+                          </Link>
+                        </Button>
+                      );
+                    })}
+                  </nav>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </header>
