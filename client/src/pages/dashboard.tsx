@@ -23,12 +23,12 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
         <div className="space-y-2">
-          <Skeleton className="h-10 w-64" />
-          <Skeleton className="h-6 w-96" />
+          <Skeleton className="h-8 sm:h-10 w-48 sm:w-64" />
+          <Skeleton className="h-5 sm:h-6 w-64 sm:w-96" />
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-32" />
           ))}
@@ -65,7 +65,7 @@ export default function Dashboard() {
     : [];
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       <div className="space-y-2">
         <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground text-lg">

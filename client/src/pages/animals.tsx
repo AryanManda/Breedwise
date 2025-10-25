@@ -76,7 +76,7 @@ export default function Animals() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
         <Skeleton className="h-10 w-64" />
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -88,7 +88,7 @@ export default function Animals() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Animal Management</h1>

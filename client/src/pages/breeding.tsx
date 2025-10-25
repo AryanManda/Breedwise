@@ -77,7 +77,7 @@ export default function Breeding() {
 
   if (animalsLoading) {
     return (
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
         <Skeleton className="h-10 w-64" />
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
@@ -90,7 +90,7 @@ export default function Breeding() {
 
   if (!animals || animals.length === 0) {
     return (
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold tracking-tight">Herd Breeding Analysis</h1>
         <Card className="p-12">
           <div className="text-center space-y-4">
@@ -110,7 +110,7 @@ export default function Breeding() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Herd Breeding Analysis</h1>

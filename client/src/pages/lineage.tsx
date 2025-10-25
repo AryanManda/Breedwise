@@ -371,7 +371,7 @@ export default function Lineage() {
 
   if (isLoading || !animals || !herds) {
     return (
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
         <Skeleton className="h-10 w-64" />
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
@@ -394,7 +394,7 @@ export default function Lineage() {
   const animalsWithoutHerd = animals.filter(a => !a.herdId);
 
   return (
-    <div className="p-6 space-y-6 max-w-full mx-auto">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-full mx-auto">
       <div className="space-y-2 max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3">
           <Network className="h-8 w-8" />
