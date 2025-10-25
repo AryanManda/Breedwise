@@ -61,13 +61,10 @@ function Navigation() {
             </nav>
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
-            <div className="hidden sm:block">
-              <ThemeToggle />
-            </div>
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant="default"
                   size="icon"
                   className="md:hidden"
                   data-testid="button-mobile-menu"
@@ -112,6 +109,9 @@ function Navigation() {
                 </div>
               </SheetContent>
             </Sheet>
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>
