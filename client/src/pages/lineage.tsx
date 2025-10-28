@@ -416,7 +416,7 @@ export default function Lineage() {
                 Create Herd
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
                   {editingHerd ? "Edit Herd" : "Create New Herd"}

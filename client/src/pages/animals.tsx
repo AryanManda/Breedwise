@@ -103,14 +103,17 @@ export default function Animals() {
               Add Animal
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Animal</DialogTitle>
               <DialogDescription>
                 Enter the details of the animal you want to add to your breeding program.
               </DialogDescription>
             </DialogHeader>
-            <AnimalForm onSuccess={() => setIsAddDialogOpen(false)} />
+            <AnimalForm onSuccess={() => {
+              setIsAddDialogOpen(false);
+              setSearchTerm("");
+            }} />
           </DialogContent>
         </Dialog>
       </div>
@@ -122,6 +125,7 @@ export default function Animals() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
+          autoComplete="off"
           data-testid="input-search-animals"
         />
       </div>
@@ -195,7 +199,7 @@ export default function Animals() {
                             <Edit className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
+                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>Edit Animal</DialogTitle>
                             <DialogDescription>
@@ -204,7 +208,10 @@ export default function Animals() {
                           </DialogHeader>
                           <AnimalForm
                             animal={editingAnimal}
-                            onSuccess={() => setEditingAnimal(null)}
+                            onSuccess={() => {
+                              setEditingAnimal(null);
+                              setSearchTerm("");
+                            }}
                           />
                         </DialogContent>
                       </Dialog>
