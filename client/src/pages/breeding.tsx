@@ -91,8 +91,8 @@ export default function Breeding() {
   if (!animals || animals.length === 0) {
     return (
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold tracking-tight">Herd Breeding Analysis</h1>
-        <Card className="p-12">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Herd Breeding Analysis</h1>
+        <Card className="p-8 sm:p-12">
           <div className="text-center space-y-4">
             <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
               <Info className="h-6 w-6 text-muted-foreground" />
@@ -113,43 +113,47 @@ export default function Breeding() {
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col gap-4">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Herd Breeding Analysis</h1>
-          <p className="text-muted-foreground text-lg mt-1">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Herd Breeding Analysis</h1>
+          <p className="text-muted-foreground text-base sm:text-lg mt-1">
             AI-powered breeding strategy for your entire herd
           </p>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
-          <Badge variant="outline" className="text-base px-3 py-1">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-wrap">
+          <Badge variant="outline" className="text-sm sm:text-base px-3 py-1">
             <Users className="h-4 w-4 mr-2" />
             {selectedAnimalIds.length} Selected
           </Badge>
           {selectedMales > 0 && (
-            <Badge className="text-base px-3 py-1">
+            <Badge className="text-sm sm:text-base px-3 py-1">
               {selectedMales} Male{selectedMales !== 1 ? "s" : ""}
             </Badge>
           )}
           {selectedFemales > 0 && (
-            <Badge variant="secondary" className="text-base px-3 py-1">
+            <Badge variant="secondary" className="text-sm sm:text-base px-3 py-1">
               {selectedFemales} Female{selectedFemales !== 1 ? "s" : ""}
             </Badge>
           )}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={selectAll}
-            data-testid="button-select-all"
-          >
-            Select All
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={deselectAll}
-            data-testid="button-deselect-all"
-          >
-            Deselect All
-          </Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={selectAll}
+              data-testid="button-select-all"
+              className="flex-1 sm:flex-initial"
+            >
+              Select All
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={deselectAll}
+              data-testid="button-deselect-all"
+              className="flex-1 sm:flex-initial"
+            >
+              Deselect All
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -175,7 +179,7 @@ export default function Breeding() {
                   onCheckedChange={() => toggleAnimal(animal.id)}
                   data-testid={`checkbox-animal-${animal.id}`}
                 />
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <div>
                     <p className="font-semibold">{animal.name}</p>
                     <Badge 
@@ -196,9 +200,9 @@ export default function Breeding() {
                     </div>
                   )}
                   {animal.healthNotes && (
-                    <div className="text-sm">
+                    <div className="text-sm sm:col-span-2 lg:col-span-1">
                       <span className="text-muted-foreground">Health:</span>
-                      <span className="ml-2 font-medium truncate">{animal.healthNotes}</span>
+                      <span className="ml-2 font-medium truncate block sm:inline">{animal.healthNotes}</span>
                     </div>
                   )}
                 </div>
@@ -272,35 +276,35 @@ export default function Breeding() {
                   </Alert>
                 )}
 
-                <div className="grid md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                   <Card className="bg-muted/50">
                     <CardContent className="pt-4">
-                      <p className="text-sm text-muted-foreground mb-1">Est. Offspring</p>
-                      <p className="text-2xl font-bold">
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-1">Est. Offspring</p>
+                      <p className="text-xl sm:text-2xl font-bold">
                         {rec.analysis.predictedOutcomes.estimatedOffspringCount}
                       </p>
                     </CardContent>
                   </Card>
                   <Card className="bg-muted/50">
                     <CardContent className="pt-4">
-                      <p className="text-sm text-muted-foreground mb-1">Trait Strength</p>
-                      <p className="text-2xl font-bold">
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-1">Trait Strength</p>
+                      <p className="text-xl sm:text-2xl font-bold">
                         {rec.analysis.predictedOutcomes.traitStrength}
                       </p>
                     </CardContent>
                   </Card>
                   <Card className="bg-muted/50">
                     <CardContent className="pt-4">
-                      <p className="text-sm text-muted-foreground mb-1">Genetic Diversity</p>
-                      <p className="text-2xl font-bold">
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-1">Genetic Diversity</p>
+                      <p className="text-xl sm:text-2xl font-bold">
                         {rec.analysis.predictedOutcomes.geneticDiversity}
                       </p>
                     </CardContent>
                   </Card>
                   <Card className="bg-muted/50">
                     <CardContent className="pt-4">
-                      <p className="text-sm text-muted-foreground mb-1">Confidence</p>
-                      <p className="text-2xl font-bold font-mono">
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-1">Confidence</p>
+                      <p className="text-xl sm:text-2xl font-bold font-mono">
                         {(rec.analysis.confidence * 100).toFixed(0)}%
                       </p>
                     </CardContent>

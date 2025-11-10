@@ -91,8 +91,8 @@ export default function Animals() {
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Animal Management</h1>
-          <p className="text-muted-foreground text-lg mt-1">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Animal Management</h1>
+          <p className="text-muted-foreground text-base sm:text-lg mt-1">
             Track and manage your breeding stock
           </p>
         </div>
@@ -103,7 +103,7 @@ export default function Animals() {
               Add Animal
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-[95vw] md:max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
             <DialogHeader>
               <DialogTitle>Add New Animal</DialogTitle>
               <DialogDescription>
@@ -153,38 +153,104 @@ export default function Animals() {
           </div>
         </Card>
       ) : (
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Species</TableHead>
-                <TableHead>Sex</TableHead>
-                <TableHead>Horn Size</TableHead>
-                <TableHead>Health Notes</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredAnimals?.map((animal) => (
-                <TableRow key={animal.id} data-testid={`row-animal-${animal.id}`}>
-                  <TableCell className="font-medium" data-testid={`text-name-${animal.id}`}>
-                    {animal.name}
-                  </TableCell>
-                  <TableCell>{animal.species}</TableCell>
-                  <TableCell>
-                    <Badge variant={animal.sex === "Male" ? "default" : "secondary"}>
-                      {animal.sex}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {animal.hornSize ? `${animal.hornSize}"` : "—"}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {animal.healthNotes || "—"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+        <>
+          {/* Desktop Table View */}
+          <Card className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Species</TableHead>
+                  <TableHead>Sex</TableHead>
+                  <TableHead>Horn Size</TableHead>
+                  <TableHead>Health Notes</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAnimals?.map((animal) => (
+                  <TableRow key={animal.id} data-testid={`row-animal-${animal.id}`}>
+                    <TableCell className="font-medium" data-testid={`text-name-${animal.id}`}>
+                      {animal.name}
+                    </TableCell>
+                    <TableCell>{animal.species}</TableCell>
+                    <TableCell>
+                      <Badge variant={animal.sex === "Male" ? "default" : "secondary"}>
+                        {animal.sex}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {animal.hornSize ? `${animal.hornSize}"` : "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {animal.healthNotes || "—"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Dialog
+                          open={editingAnimal?.id === animal.id}
+                          onOpenChange={(open) => !open && setEditingAnimal(null)}
+                        >
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setEditingAnimal(animal)}
+                              data-testid={`button-edit-${animal.id}`}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Edit Animal</DialogTitle>
+                              <DialogDescription>
+                                Update the animal's information.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <AnimalForm
+                              animal={editingAnimal}
+                              onSuccess={() => {
+                                setEditingAnimal(null);
+                                setSearchTerm("");
+                              }}
+                            />
+                          </DialogContent>
+                        </Dialog>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeletingAnimal(animal)}
+                          data-testid={`button-delete-${animal.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-3">
+            {filteredAnimals?.map((animal) => (
+              <Card key={animal.id} className="hover-elevate" data-testid={`row-animal-${animal.id}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-lg truncate" data-testid={`text-name-${animal.id}`}>
+                        {animal.name}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <Badge variant={animal.sex === "Male" ? "default" : "secondary"}>
+                          {animal.sex}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">{animal.species}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 flex-shrink-0">
                       <Dialog
                         open={editingAnimal?.id === animal.id}
                         onOpenChange={(open) => !open && setEditingAnimal(null)}
@@ -195,11 +261,12 @@ export default function Animals() {
                             size="icon"
                             onClick={() => setEditingAnimal(animal)}
                             data-testid={`button-edit-${animal.id}`}
+                            className="h-9 w-9"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto mx-4">
                           <DialogHeader>
                             <DialogTitle>Edit Animal</DialogTitle>
                             <DialogDescription>
@@ -220,16 +287,31 @@ export default function Animals() {
                         size="icon"
                         onClick={() => setDeletingAnimal(animal)}
                         data-testid={`button-delete-${animal.id}`}
+                        className="h-9 w-9"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    {animal.hornSize && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Horn Size:</span>
+                        <span className="font-medium">{animal.hornSize}"</span>
+                      </div>
+                    )}
+                    {animal.healthNotes && (
+                      <div>
+                        <span className="text-muted-foreground">Health Notes:</span>
+                        <p className="mt-1 text-foreground">{animal.healthNotes}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
       )}
 
       <AlertDialog

@@ -67,13 +67,13 @@ export default function Dashboard() {
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground text-lg">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground text-base sm:text-lg">
           Key metrics and analytics for your breeding program
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card data-testid="card-total-animals">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Animals</CardTitle>
@@ -108,7 +108,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card data-testid="card-breeding-potential">
+        <Card data-testid="card-breeding-potential" className="sm:col-span-2 lg:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Breeding Potential
@@ -129,11 +129,11 @@ export default function Dashboard() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Male/Female Ratio</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Male/Female Ratio</CardTitle>
           </CardHeader>
           <CardContent>
             {sexDistribution.some((d) => d.value > 0) ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
                 <PieChart>
                   <Pie
                     data={sexDistribution}
@@ -141,7 +141,7 @@ export default function Dashboard() {
                     cy="50%"
                     labelLine={false}
                     label={({ name, value }) => `${name}: ${value}`}
-                    outerRadius={100}
+                    outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
                   >
@@ -154,12 +154,13 @@ export default function Dashboard() {
                       backgroundColor: "hsl(var(--popover))",
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "0.375rem",
+                      fontSize: "0.875rem",
                     }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              <div className="h-[250px] sm:h-[300px] flex items-center justify-center text-muted-foreground">
                 No data available
               </div>
             )}
@@ -168,27 +169,35 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Herd Distribution</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Herd Distribution</CardTitle>
           </CardHeader>
           <CardContent>
             {herdDistribution.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
                 <BarChart data={herdDistribution}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                  <YAxis stroke="hsl(var(--muted-foreground))" />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="hsl(var(--muted-foreground))"
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                    className="text-xs"
+                  />
+                  <YAxis stroke="hsl(var(--muted-foreground))" className="text-xs" />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "hsl(var(--popover))",
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "0.375rem",
+                      fontSize: "0.875rem",
                     }}
                   />
                   <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              <div className="h-[250px] sm:h-[300px] flex items-center justify-center text-muted-foreground">
                 No data available
               </div>
             )}

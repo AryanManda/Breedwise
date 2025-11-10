@@ -235,7 +235,7 @@ export default function Lineage() {
   const renderAnimalCard = (animal: Animal | null, showHerdSelector: boolean = false) => {
     if (!animal) {
       return (
-        <div className="w-40 h-28 border-2 border-dashed border-muted rounded-md flex items-center justify-center">
+        <div className="w-32 sm:w-40 h-24 sm:h-28 border-2 border-dashed border-muted rounded-md flex items-center justify-center">
           <span className="text-xs text-muted-foreground">Unknown</span>
         </div>
       );
@@ -243,7 +243,7 @@ export default function Lineage() {
 
     return (
       <Card
-        className="w-40 hover-elevate flex-shrink-0"
+        className="w-32 sm:w-40 hover-elevate flex-shrink-0"
         data-testid={`card-animal-${animal.id}`}
       >
         <CardHeader className="p-3 pb-2">
@@ -307,22 +307,22 @@ export default function Lineage() {
     return (
       <div key={group.id} className="family-group mb-12 flex flex-col items-center">
         {hasParents && (
-          <div className="parents-row flex items-center gap-4 mb-2 relative">
+          <div className="parents-row flex items-center gap-2 sm:gap-4 mb-2 relative">
             <div className="relative">
               {renderAnimalCard(group.sire, showHerdSelector)}
             </div>
 
             {group.sire && group.dam && (
               <div className="flex flex-col items-center relative">
-                <div className="w-8 h-0.5 bg-border"></div>
+                <div className="w-4 sm:w-8 h-0.5 bg-border"></div>
                 {hasOffspring && (
-                  <div className="w-0.5 h-8 bg-border"></div>
+                  <div className="w-0.5 h-6 sm:h-8 bg-border"></div>
                 )}
               </div>
             )}
 
             {(group.sire || group.dam) && !(group.sire && group.dam) && hasOffspring && (
-              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0.5 h-8 bg-border"></div>
+              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0.5 h-6 sm:h-8 bg-border"></div>
             )}
 
             <div className="relative">
@@ -348,7 +348,7 @@ export default function Lineage() {
               <div className="w-0.5 h-8 bg-border mb-2"></div>
             )}
 
-            <div className="flex items-start gap-4 flex-wrap justify-center max-w-7xl">
+            <div className="flex items-start gap-2 sm:gap-4 flex-wrap justify-center max-w-7xl overflow-x-auto pb-2">
               {group.offspring.map((child) => (
                 <div key={child.id} className="flex flex-col items-center relative">
                   {offspringCount > 1 && (
@@ -396,11 +396,11 @@ export default function Lineage() {
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-full mx-auto">
       <div className="space-y-2 max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3">
-          <Network className="h-8 w-8" />
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight flex items-center gap-2 sm:gap-3">
+          <Network className="h-6 w-6 sm:h-8 sm:w-8" />
           Herd Data
         </h1>
-        <p className="text-muted-foreground text-lg">
+        <p className="text-muted-foreground text-base sm:text-lg">
           Organize animals into herds and visualize family relationships
         </p>
       </div>
@@ -416,7 +416,7 @@ export default function Lineage() {
                 Create Herd
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-[95vw] md:max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
               <DialogHeader>
                 <DialogTitle>
                   {editingHerd ? "Edit Herd" : "Create New Herd"}
