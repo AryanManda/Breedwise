@@ -82,8 +82,8 @@ function Navigation() {
       </header>
 
       {/* Mobile Bottom Navigation Bar - Always Visible */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-card">
-        <div className="grid grid-cols-4 gap-1 px-2 py-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[100] border-t bg-card shadow-lg" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="grid grid-cols-4 gap-1 px-2 py-3">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location === item.path;
@@ -94,14 +94,14 @@ function Navigation() {
                 data-testid={`mobile-nav-${item.label.toLowerCase()}`}
               >
                 <div
-                  className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg transition-colors ${
+                  className={`flex flex-col items-center justify-center gap-1 py-3 px-1 rounded-xl transition-colors ${
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover-elevate"
+                      ? "bg-primary text-primary-foreground shadow-md"
+                      : "text-muted-foreground active:bg-muted"
                   }`}
                 >
-                  <Icon className="h-5 w-5" />
-                  <span className="text-xs font-medium">{item.shortLabel}</span>
+                  <Icon className="h-6 w-6" />
+                  <span className="text-xs font-semibold">{item.shortLabel}</span>
                 </div>
               </Link>
             );
@@ -131,7 +131,7 @@ function App() {
         <TooltipProvider>
           <div className="min-h-screen flex flex-col bg-background">
             <Navigation />
-            <main className="flex-1 pb-20 md:pb-0">
+            <main className="flex-1 pb-24 md:pb-0">
               <Router />
             </main>
           </div>
