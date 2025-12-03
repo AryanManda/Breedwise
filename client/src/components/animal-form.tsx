@@ -23,6 +23,29 @@ import { insertAnimalSchema, type InsertAnimal, type Animal, type Herd } from "@
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+const SPECIES_LIST = [
+  "Cattle",
+  "Horse",
+  "Sheep",
+  "Goat",
+  "Pig",
+  "Chicken",
+  "Turkey",
+  "Duck",
+  "Alpaca",
+  "Llama",
+  "Donkey",
+  "Mule",
+  "Bison",
+  "Elk",
+  "Deer",
+  "Rabbit",
+  "Quail",
+  "Goose",
+  "Ostrich",
+  "Emu",
+];
+
 interface AnimalFormProps {
   animal?: Animal | null;
   onSuccess?: () => void;
@@ -151,13 +174,20 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Species</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="e.g., Cattle"
-                    {...field}
-                    data-testid="input-animal-species"
-                  />
-                </FormControl>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger data-testid="select-animal-species">
+                      <SelectValue placeholder="Select species" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {SPECIES_LIST.map((species) => (
+                      <SelectItem key={species} value={species} data-testid={`select-option-species-${species.toLowerCase()}`}>
+                        {species}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

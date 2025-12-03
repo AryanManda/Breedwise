@@ -103,7 +103,7 @@ export default function Animals() {
               Add Animal
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Add New Animal</DialogTitle>
               <DialogDescription>
@@ -199,7 +199,7 @@ export default function Animals() {
                             <Edit className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <DialogContent className="max-w-2xl">
                           <DialogHeader>
                             <DialogTitle>Edit Animal</DialogTitle>
                             <DialogDescription>
