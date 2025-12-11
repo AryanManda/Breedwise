@@ -31,12 +31,14 @@ export default function Lineage() {
   const [editingHerd, setEditingHerd] = useState<Herd | null>(null);
   const [selectedHerd, setSelectedHerd] = useState<string | null>(null);
 
-  const { data: animals, isLoading: animalsLoading } = useQuery<Animal[]>({
+  const { data: animals, isLoading: animalsLoading, error: animalsError } = useQuery<Animal[]>({
     queryKey: ["/api/animals"],
+    retry: 1,
   });
 
-  const { data: herds, isLoading: herdsLoading } = useQuery<Herd[]>({
+  const { data: herds, isLoading: herdsLoading, error: herdsError } = useQuery<Herd[]>({
     queryKey: ["/api/herds"],
+    retry: 1,
   });
 
   const form = useForm<InsertHerd>({
@@ -183,15 +185,19 @@ export default function Lineage() {
   };
 
   const buildFamilyGroups = (animals: Animal[]): FamilyGroup[] => {
+    if (!animals || animals.length === 0) {
+      return [];
+    }
+
     const animalMap = new Map<string, Animal>();
-    animals?.forEach((animal) => animalMap.set(animal.id, animal));
+    animals.forEach((animal) => animalMap.set(animal.id, animal));
 
     const groups: FamilyGroup[] = [];
     const grouped = new Set<string>();
 
     const parentPairMap = new Map<string, Animal[]>();
     
-    animals?.forEach((animal) => {
+    animals.forEach((animal) => {
       if (animal.sireId || animal.damId) {
         const key = `${animal.sireId || "none"}-${animal.damId || "none"}`;
         if (!parentPairMap.has(key)) {
@@ -218,7 +224,7 @@ export default function Lineage() {
       });
     });
 
-    animals?.forEach((animal) => {
+    animals.forEach((animal) => {
       if (!grouped.has(animal.id)) {
         groups.push({
           id: `standalone-${animal.id}`,
@@ -283,7 +289,7 @@ export default function Lineage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">No Herd</SelectItem>
-                {herds?.map((herd) => (
+                {herdsList.map((herd) => (
                   <SelectItem key={herd.id} value={herd.id} data-testid={`option-herd-${herd.id}`}>
                     {herd.name}
                   </SelectItem>
@@ -369,7 +375,7 @@ export default function Lineage() {
 
   const isLoading = animalsLoading || herdsLoading;
 
-  if (isLoading || !animals || !herds) {
+  if (isLoading) {
     return (
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
         <Skeleton className="h-10 w-64" />
@@ -382,16 +388,42 @@ export default function Lineage() {
     );
   }
 
+  if (animalsError || herdsError) {
+    return (
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+        <Alert variant="destructive">
+          <AlertDescription>
+            Failed to load data: {animalsError?.message || herdsError?.message || "Unknown error"}
+            <Button
+              variant="outline"
+              className="ml-4"
+              onClick={() => {
+                queryClient.invalidateQueries({ queryKey: ["/api/animals"] });
+                queryClient.invalidateQueries({ queryKey: ["/api/herds"] });
+              }}
+            >
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Ensure we have arrays even if data is undefined
+  const animalsList = animals || [];
+  const herdsList = herds || [];
+
   // Filter animals by selected herd
   const filteredAnimals = selectedHerd
-    ? animals.filter(a => a.herdId === selectedHerd)
-    : animals;
+    ? animalsList.filter(a => a.herdId === selectedHerd)
+    : animalsList;
 
   const familyGroups = buildFamilyGroups(filteredAnimals);
   const groupsWithOffspring = familyGroups.filter(g => g.offspring.length > 0);
   const standaloneGroups = familyGroups.filter(g => g.offspring.length === 0);
 
-  const animalsWithoutHerd = animals.filter(a => !a.herdId);
+  const animalsWithoutHerd = animalsList.filter(a => !a.herdId);
 
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-full mx-auto">
@@ -473,10 +505,10 @@ export default function Lineage() {
           </Dialog>
         </div>
 
-        {herds && herds.length > 0 ? (
+        {herdsList && herdsList.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {herds.map((herd) => {
-              const herdAnimalCount = animals?.filter(a => a.herdId === herd.id).length || 0;
+            {herdsList.map((herd) => {
+              const herdAnimalCount = animalsList.filter(a => a.herdId === herd.id).length;
               return (
                 <Card
                   key={herd.id}
@@ -542,7 +574,7 @@ export default function Lineage() {
           <Alert>
             <Network className="h-4 w-4" />
             <AlertDescription>
-              Viewing herd: <strong>{herds?.find(h => h.id === selectedHerd)?.name}</strong>
+              Viewing herd: <strong>{herdsList.find(h => h.id === selectedHerd)?.name}</strong>
               {" "}
               <Button 
                 variant="ghost" 
@@ -558,7 +590,7 @@ export default function Lineage() {
       </div>
 
       {/* Animals and Lineage Section */}
-      {animals && animals.length === 0 ? (
+      {animalsList.length === 0 ? (
         <Card className="p-12 max-w-7xl mx-auto">
           <div className="text-center space-y-4">
             <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
