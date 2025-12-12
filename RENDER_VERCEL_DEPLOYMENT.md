@@ -81,6 +81,7 @@ Fill in these settings:
 - **Branch**: `main` (should be auto-selected)
 - **Root Directory**: Leave empty (root is fine)
 - **Runtime**: `Node` (should auto-detect)
+- **Node Version**: `20` (important! Set this manually)
 - **Build Command**: `npm install && npm run build`
 - **Start Command**: `npm start`
 
