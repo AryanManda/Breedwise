@@ -3,6 +3,7 @@ services:
     name: breedwise-backend
     env: node
     buildCommand: npm install && npm run build
+    installCommand: npm install
     startCommand: npm start
     envVars:
       - key: NODE_ENV
