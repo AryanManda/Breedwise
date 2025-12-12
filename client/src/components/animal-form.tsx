@@ -191,8 +191,8 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+        <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}
             name="name"
@@ -304,7 +304,7 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
           />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}
             name="herdId"
@@ -336,7 +336,7 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
           />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}
             name="sireId"
@@ -398,11 +398,12 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
           />
         </div>
 
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-2">
           <Button
             type="submit"
             disabled={isPending}
             data-testid="button-save-animal"
+            className="w-full sm:w-auto"
           >
             {isPending ? "Saving..." : isEditing ? "Update Animal" : "Add Animal"}
           </Button>

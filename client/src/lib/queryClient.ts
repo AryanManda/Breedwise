@@ -1,5 +1,21 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// Get API base URL from environment variable or use relative path
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+
+function getApiUrl(path: string): string {
+  // If path already starts with http, use it as-is
+  if (path.startsWith("http")) {
+    return path;
+  }
+  // If API_BASE_URL is set, prepend it
+  if (API_BASE_URL) {
+    return `${API_BASE_URL}${path}`;
+  }
+  // Otherwise use relative path (same origin)
+  return path;
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -12,7 +28,8 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
+  const fullUrl = getApiUrl(url);
+  const res = await fetch(fullUrl, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
@@ -29,7 +46,9 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const url = queryKey.join("/") as string;
+    const fullUrl = getApiUrl(url);
+    const res = await fetch(fullUrl, {
       credentials: "include",
     });
 
@@ -56,3 +75,4 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
