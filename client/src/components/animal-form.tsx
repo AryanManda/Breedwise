@@ -78,8 +78,8 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
         }
       : {
           name: "",
-          species: "",
-          sex: "Male",
+          species: "" as any, // Will be validated by schema
+          sex: "Male" as "Male" | "Female",
           healthNotes: undefined,
           hornSize: undefined,
           sireId: undefined,
@@ -90,7 +90,18 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertAnimal) => {
-      const response = await apiRequest("POST", "/api/animals", data);
+      // Clean up the data - remove undefined values and ensure species is set
+      const cleanData = {
+        name: data.name,
+        species: data.species,
+        sex: data.sex,
+        ...(data.healthNotes && { healthNotes: data.healthNotes }),
+        ...(data.hornSize !== undefined && data.hornSize !== null && { hornSize: data.hornSize }),
+        ...(data.sireId && { sireId: data.sireId }),
+        ...(data.damId && { damId: data.damId }),
+        ...(data.herdId && { herdId: data.herdId }),
+      };
+      const response = await apiRequest("POST", "/api/animals", cleanData);
       return await response.json();
     },
     onSuccess: () => {
@@ -99,13 +110,23 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
         title: "Animal added",
         description: "The animal has been successfully added to your breeding program.",
       });
-      form.reset();
+      form.reset({
+        name: "",
+        species: "",
+        sex: "Male",
+        healthNotes: undefined,
+        hornSize: undefined,
+        sireId: undefined,
+        damId: undefined,
+        herdId: undefined,
+      });
       onSuccess?.();
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Error creating animal:", error);
       toast({
         title: "Error",
-        description: "Failed to add animal. Please try again.",
+        description: error?.message || "Failed to add animal. Please check all required fields are filled.",
         variant: "destructive",
       });
     },
@@ -113,7 +134,18 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
 
   const updateMutation = useMutation({
     mutationFn: async (data: InsertAnimal) => {
-      const response = await apiRequest("PUT", `/api/animals/${animal!.id}`, data);
+      // Clean up the data - remove undefined values
+      const cleanData = {
+        name: data.name,
+        species: data.species,
+        sex: data.sex,
+        ...(data.healthNotes && { healthNotes: data.healthNotes }),
+        ...(data.hornSize !== undefined && data.hornSize !== null && { hornSize: data.hornSize }),
+        ...(data.sireId && { sireId: data.sireId }),
+        ...(data.damId && { damId: data.damId }),
+        ...(data.herdId && { herdId: data.herdId }),
+      };
+      const response = await apiRequest("PUT", `/api/animals/${animal!.id}`, cleanData);
       return await response.json();
     },
     onSuccess: () => {
@@ -124,16 +156,27 @@ export function AnimalForm({ animal, onSuccess }: AnimalFormProps) {
       });
       onSuccess?.();
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Error updating animal:", error);
       toast({
         title: "Error",
-        description: "Failed to update animal. Please try again.",
+        description: error?.message || "Failed to update animal. Please try again.",
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: InsertAnimal) => {
+    // Validate required fields
+    if (!data.name || !data.species) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields (Name and Species).",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (isEditing) {
       updateMutation.mutate(data);
     } else {

@@ -195,9 +195,11 @@ export default function Lineage() {
     const groups: FamilyGroup[] = [];
     const grouped = new Set<string>();
 
+    // Group animals by their parent pairs (sire + dam combination)
     const parentPairMap = new Map<string, Animal[]>();
     
     animals.forEach((animal) => {
+      // Include animals that have at least one parent
       if (animal.sireId || animal.damId) {
         const key = `${animal.sireId || "none"}-${animal.damId || "none"}`;
         if (!parentPairMap.has(key)) {
@@ -208,22 +210,27 @@ export default function Lineage() {
       }
     });
 
+    // Create family groups from parent pairs
     parentPairMap.forEach((offspring, key) => {
       const [sireId, damId] = key.split("-");
-      const sire = sireId !== "none" ? animalMap.get(sireId) || null : null;
-      const dam = damId !== "none" ? animalMap.get(damId) || null : null;
+      const sire = sireId !== "none" && sireId ? animalMap.get(sireId) || null : null;
+      const dam = damId !== "none" && damId ? animalMap.get(damId) || null : null;
 
-      if (sire) grouped.add(sire.id);
-      if (dam) grouped.add(dam.id);
+      // Only create a group if we have at least one parent or offspring
+      if (sire || dam || offspring.length > 0) {
+        if (sire) grouped.add(sire.id);
+        if (dam) grouped.add(dam.id);
 
-      groups.push({
-        id: key,
-        sire,
-        dam,
-        offspring,
-      });
+        groups.push({
+          id: key,
+          sire,
+          dam,
+          offspring,
+        });
+      }
     });
 
+    // Add standalone animals (those without parents and not in any group)
     animals.forEach((animal) => {
       if (!grouped.has(animal.id)) {
         groups.push({
@@ -388,6 +395,10 @@ export default function Lineage() {
     );
   }
 
+  // Ensure we have arrays even if data is undefined
+  const animalsList = animals || [];
+  const herdsList = herds || [];
+
   if (animalsError || herdsError) {
     return (
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
@@ -406,13 +417,15 @@ export default function Lineage() {
             </Button>
           </AlertDescription>
         </Alert>
+        {/* Still show the rest of the page even with errors */}
+        <div className="mt-4">
+          <p className="text-muted-foreground">
+            Showing cached data. Please retry to refresh.
+          </p>
+        </div>
       </div>
     );
   }
-
-  // Ensure we have arrays even if data is undefined
-  const animalsList = animals || [];
-  const herdsList = herds || [];
 
   // Filter animals by selected herd
   const filteredAnimals = selectedHerd
@@ -627,7 +640,9 @@ export default function Lineage() {
                   <p className="text-muted-foreground mt-1">
                     {selectedHerd 
                       ? "No animals assigned to this herd yet. Use the dropdown on animal cards to assign them."
-                      : "Start adding parent relationships when adding or editing animals to build your hereditary tree."
+                      : filteredAnimals.length === 0
+                      ? "No animals found. Add animals to start building your breeding program."
+                      : "To see family trees, add parent relationships (Sire and Dam) when creating or editing animals."
                     }
                   </p>
                 </div>
